@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.googletagmanager.com; script-src-attr 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' https://www.google-analytics.com https://*.google-analytics.com; connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://pintu-naik-visitor-stats.pintunaik300.workers.dev; object-src 'none'; base-uri 'none'; form-action 'self'" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="description" content="Sign in to the website admin editor." />
+    <title>Admin Login | Personal Website</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="editor-page login-page" aria-labelledby="login-title">
+      <header class="editor-header">
+        <a class="text-link" href="index.html">← Back to website</a>
+        <h1 id="login-title">Admin sign in</h1>
+        <p>Sign in to update your website content.</p>
+      </header>
+      <form class="editor-form editor-card" data-login-form method="post" action="/api/auth/login">
+        <label>Username
+          <input name="username" type="text" autocomplete="username" maxlength="256" required autofocus />
+        </label>
+        <label>Password
+          <input name="password" type="password" autocomplete="current-password" maxlength="1024" required />
+        </label>
+        <button class="button primary" type="submit">Sign in</button>
+        <p class="editor-status" data-login-status role="status" aria-live="polite"></p>
+        <noscript>Enable JavaScript to sign in.</noscript>
+      </form>
+    </main>
+    <script src="login.js"></script>
+  </body>
+</html>

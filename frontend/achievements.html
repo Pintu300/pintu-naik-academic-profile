@@ -2,17 +2,34 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.googletagmanager.com; script-src-attr 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' https://www.google-analytics.com https://*.google-analytics.com; connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://pintu-naik-visitor-stats.pintunaik300.workers.dev; object-src 'none'; base-uri 'none'; form-action 'self'" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Awards, certificates, and academic achievements of Pintu Naik." />
-    <title>Achievements | Pintu Naik</title>
+    <meta name="description" content="Academic achievements, university memories, and photographs of Pintu Naik." />
+    <title>Pintu Naik | Achievements</title>
     <link rel="stylesheet" href="styles.css" />
+    <!-- Site metadata -->
+    <link rel="canonical" href="https://pintu300.github.io/pintu-naik-academic-profile/achievements.html" />
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Pintu Naik" />
+    <meta property="og:title" content="Pintu Naik | Achievements" />
+    <meta property="og:description" content="Academic achievements, university memories, and photographs of Pintu Naik." />
+    <meta property="og:url" content="https://pintu300.github.io/pintu-naik-academic-profile/achievements.html" />
+    <meta property="og:image" content="https://pintu300.github.io/pintu-naik-academic-profile/assets/Photo.jpeg" />
+    <meta property="og:image:alt" content="Portrait of Pintu Naik" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Pintu Naik | Achievements" />
+    <meta name="twitter:description" content="Academic achievements, university memories, and photographs of Pintu Naik." />
+    <meta name="twitter:image" content="https://pintu300.github.io/pintu-naik-academic-profile/assets/Photo.jpeg" />
+    <!-- End site metadata -->
   </head>
-  <body class="academic-site" data-page-title="Achievements" data-page-hero-image="assets/profile-achievements.jpg">
+  <body class="academic-site" data-page-title="Achievements" data-page-hero-image="assets/optimized/profile-achievements-960.webp">
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="academic-header">
       <nav class="academic-nav" aria-label="Primary navigation">
         <a class="academic-brand" href="index.html" aria-label="Pintu Naik, home">
-          <img class="academic-brand__photo" data-profile-photo src="assets/Photo.jpeg" alt="" />
+          <img class="academic-brand__photo" data-profile-photo src="assets/optimized/Photo-96.webp" alt="" srcset="assets/optimized/Photo-96.webp 96w, assets/optimized/Photo-320.webp 320w, assets/optimized/Photo-640.webp 640w" sizes="40px" width="96" height="123" data-profile-source="assets/Photo.jpeg" />
           <span><strong data-profile="name">Pintu Naik</strong><small data-profile="shortTitle">PhD Scholar · IIT Jammu</small></span>
         </a>
         <button class="academic-nav__toggle" type="button" aria-expanded="false" aria-controls="academic-menu" aria-label="Toggle navigation"><span></span><span></span><span></span></button>
@@ -22,6 +39,7 @@
       </nav>
     </header>
     <main id="main">
+      <noscript><p class="content-status">Enable JavaScript to view the latest academic information.</p></noscript>
       <header class="academic-page-heading" data-reveal>
         <p class="academic-eyebrow">Academic milestones</p>
         <h1>Achievements</h1>
@@ -30,8 +48,7 @@
       <section class="academic-page-content" data-reveal aria-label="Achievement gallery">
         <div class="achievement-gallery" data-achievements-list aria-live="polite">
           <p class="academic-empty-state">
-            No achievements are listed yet. Add entries to <code>backend/data/achievements.json</code>
-            and put their photos in <code>frontend/assets/</code>.
+            Loading photos and achievements…
           </p>
         </div>
       </section>
@@ -40,7 +57,7 @@
 
     <div class="achievement-detail" data-achievement-modal hidden>
       <button class="achievement-detail__backdrop" type="button" data-achievement-close aria-label="Close achievement details"></button>
-      <section class="achievement-detail__panel" role="dialog" aria-modal="true" aria-labelledby="achievement-detail-title">
+      <section class="achievement-detail__panel" role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="achievement-detail-title">
         <button class="achievement-detail__close" type="button" data-achievement-close aria-label="Close">&times;</button>
         <img data-achievement-detail-image src="" alt="" />
         <div class="achievement-detail__body">
@@ -53,6 +70,7 @@
       </section>
     </div>
     <script src="analytics.js"></script>
+    <script src="catalog.js"></script>
     <script src="script.js"></script>
   </body>
 </html>

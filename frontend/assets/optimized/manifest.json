@@ -1,0 +1,188 @@
+{
+  "assets/Photo.jpeg": {
+    "sha256": "34d2511181a9026538b05591c2a46048ddb532f0ff6a6766d3cd89be9b7ade7e",
+    "originalBytes": 272456,
+    "variants": [
+      {
+        "path": "assets/optimized/Photo-96.webp",
+        "width": 96,
+        "height": 123,
+        "bytes": 1776
+      },
+      {
+        "path": "assets/optimized/Photo-320.webp",
+        "width": 320,
+        "height": 408,
+        "bytes": 8162
+      },
+      {
+        "path": "assets/optimized/Photo-640.webp",
+        "width": 640,
+        "height": 816,
+        "bytes": 26926
+      }
+    ]
+  },
+  "assets/profile-achievements.jpg": {
+    "sha256": "cb5e9d95b15e2cea05761b8eaa8619030d34ffb9bb5a527ddf8ed20b80102f8c",
+    "originalBytes": 100441,
+    "variants": [
+      {
+        "path": "assets/optimized/profile-achievements-480.webp",
+        "width": 480,
+        "height": 320,
+        "bytes": 27122
+      },
+      {
+        "path": "assets/optimized/profile-achievements-960.webp",
+        "width": 800,
+        "height": 533,
+        "bytes": 58614
+      }
+    ]
+  },
+  "assets/profile-cv.jpg": {
+    "sha256": "aa204797238177182f44ea4af6088102351f990c936910679a8e272b455397d0",
+    "originalBytes": 52005,
+    "variants": [
+      {
+        "path": "assets/optimized/profile-cv-480.webp",
+        "width": 480,
+        "height": 361,
+        "bytes": 10564
+      },
+      {
+        "path": "assets/optimized/profile-cv-960.webp",
+        "width": 800,
+        "height": 601,
+        "bytes": 20638
+      }
+    ]
+  },
+  "assets/profile-education.jpg": {
+    "sha256": "b7cac958bf28df50a0af18177dea56c10ef64f8aef5c4ef25f8ed8f20f33219b",
+    "originalBytes": 97777,
+    "variants": [
+      {
+        "path": "assets/optimized/profile-education-480.webp",
+        "width": 480,
+        "height": 320,
+        "bytes": 31146
+      },
+      {
+        "path": "assets/optimized/profile-education-960.webp",
+        "width": 800,
+        "height": 534,
+        "bytes": 58230
+      }
+    ]
+  },
+  "assets/profile-projects.jpg": {
+    "sha256": "b90e8b388a9e1885def88d230b4942168f6c8d3f265fcb78bdd2e408c33cf184",
+    "originalBytes": 100169,
+    "variants": [
+      {
+        "path": "assets/optimized/profile-projects-480.webp",
+        "width": 480,
+        "height": 320,
+        "bytes": 26960
+      },
+      {
+        "path": "assets/optimized/profile-projects-960.webp",
+        "width": 800,
+        "height": 533,
+        "bytes": 58638
+      }
+    ]
+  },
+  "assets/profile-publications.jpg": {
+    "sha256": "c6f56e7a8d8ecbfc4908e346990f284505bbf958ab538cd687e24af80ec510f5",
+    "originalBytes": 59038,
+    "variants": [
+      {
+        "path": "assets/optimized/profile-publications-480.webp",
+        "width": 480,
+        "height": 361,
+        "bytes": 11900
+      },
+      {
+        "path": "assets/optimized/profile-publications-960.webp",
+        "width": 800,
+        "height": 601,
+        "bytes": 24074
+      }
+    ]
+  },
+  "assets/profile-teaching.jpg": {
+    "sha256": "c299b490c2e1b77e8359ef8cad0304fbed2261b0bff1c20ff8457f54a23094b9",
+    "originalBytes": 70980,
+    "variants": [
+      {
+        "path": "assets/optimized/profile-teaching-480.webp",
+        "width": 480,
+        "height": 299,
+        "bytes": 18778
+      },
+      {
+        "path": "assets/optimized/profile-teaching-960.webp",
+        "width": 800,
+        "height": 498,
+        "bytes": 34346
+      }
+    ]
+  },
+  "assets/research-distributed-systems.jpg": {
+    "sha256": "2f0fd28f68cac20294916e2215e8b3c1faae51cd82e3ab9c31fc1c30e7f18fb7",
+    "originalBytes": 138130,
+    "variants": [
+      {
+        "path": "assets/optimized/research-distributed-systems-480.webp",
+        "width": 480,
+        "height": 269,
+        "bytes": 21772
+      },
+      {
+        "path": "assets/optimized/research-distributed-systems-960.webp",
+        "width": 960,
+        "height": 539,
+        "bytes": 89702
+      }
+    ]
+  },
+  "assets/research-graph-computing.jpg": {
+    "sha256": "bc1e2f7bfb54e2a52a04930623c69201edce673b86b80c17738cf29996696c7a",
+    "originalBytes": 128957,
+    "variants": [
+      {
+        "path": "assets/optimized/research-graph-computing-480.webp",
+        "width": 480,
+        "height": 320,
+        "bytes": 27470
+      },
+      {
+        "path": "assets/optimized/research-graph-computing-960.webp",
+        "width": 960,
+        "height": 640,
+        "bytes": 72660
+      }
+    ]
+  },
+  "assets/research-nanopore-lab.jpg": {
+    "sha256": "48a570da79c3bc4d6449744bfebc1caa96a336bbdc303751fcb3c0c3258e8971",
+    "originalBytes": 132775,
+    "variants": [
+      {
+        "path": "assets/optimized/research-nanopore-lab-480.webp",
+        "width": 480,
+        "height": 320,
+        "bytes": 26230
+      },
+      {
+        "path": "assets/optimized/research-nanopore-lab-960.webp",
+        "width": 960,
+        "height": 640,
+        "bytes": 66366
+      }
+    ]
+  }
+}

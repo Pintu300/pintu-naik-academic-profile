@@ -1,4 +1,6 @@
 (() => {
+  // Local development and automated browser checks must not inflate public visitor totals.
+  if (["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname)) return;
   const measurementId = "G-1QX3DKVS0G";
 
   if (!/^G-[A-Z0-9]+$/i.test(measurementId)) {

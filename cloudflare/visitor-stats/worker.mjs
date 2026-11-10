@@ -83,7 +83,7 @@ const getAnalyticsReport = async (env) => {
     throw new Error("GA_PROPERTY_ID must be a numeric Google Analytics property ID.");
   }
 
-  const startDate = env.GA_REPORT_START_DATE || "2020-01-01";
+  const startDate = env.GA_REPORT_START_DATE || "2026-11-10";
   if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate)) {
     throw new Error("GA_REPORT_START_DATE must use YYYY-MM-DD.");
   }
@@ -191,7 +191,7 @@ export default {
         },
         200,
         {
-          "Cache-Control": "public, max-age=900, s-maxage=3600, stale-while-revalidate=86400"
+          "Cache-Control": "no-store"
         }
       );
     } catch (error) {

@@ -2,6 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.googletagmanager.com; script-src-attr 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' https://www.google-analytics.com https://*.google-analytics.com; connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://pintu-naik-visitor-stats.pintunaik300.workers.dev; object-src 'none'; base-uri 'none'; form-action 'self'" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
     <meta name="description" content="Password-protected website content editor." />
@@ -13,13 +15,19 @@
       <header class="editor-header">
         <a class="text-link" href="index.html">Back to website</a>
         <h1 id="editor-title">Admin Editor</h1>
+        <button class="button neutral" type="button" data-logout>Sign out</button>
+        <button class="button primary" type="submit" form="editor-form" data-editor-save disabled>Save details</button>
         <p>
           This page is password protected. Use it to update visible website
           details without editing JSON in the terminal.
         </p>
       </header>
 
-      <form class="editor-form" data-editor-form>
+      <form class="editor-form" id="editor-form" data-editor-form>
+        <nav class="editor-section-nav" aria-label="Editor sections" data-editor-nav></nav>
+        <div class="editor-backup"><button class="button neutral" type="button" data-editor-backup disabled>Download saved backup</button><p>Downloads the last saved content. Unsaved changes are not included.</p></div>
+        <fieldset class="editor-fields" data-editor-fields disabled>
+          <legend class="sr-only">Website content</legend>
         <section class="editor-card" aria-labelledby="profile-heading">
           <h2 id="profile-heading">Profile</h2>
           <div class="field-grid">
@@ -96,57 +104,18 @@
           </div>
         </section>
 
-        <section class="editor-card" aria-labelledby="content-heading">
-          <h2 id="content-heading">Website Sections</h2>
-          <p>
-            These fields use JSON arrays. Keep the square brackets and double
-            quotes; edit the text inside the existing examples.
-          </p>
+        <section class="editor-card" aria-labelledby="about-heading">
+          <h2 id="about-heading">About paragraphs</h2>
           <label>
-            About Paragraphs
-            <textarea name="profile.about" rows="8" spellcheck="false"></textarea>
+            Biography
+            <textarea name="profile.about" rows="8" aria-describedby="about-help"></textarea>
           </label>
-          <label>
-            Research Interests
-            <textarea name="research" rows="12" spellcheck="false"></textarea>
-          </label>
-          <label>
-            Recent Updates
-            <p class="editor-help">Add news items as JSON objects with <code>date</code>, <code>title</code>, and <code>description</code>. These appear in the News section on the homepage.</p>
-            <textarea name="updates" rows="9" spellcheck="false"></textarea>
-          </label>
-          <label>
-            Publications
-            <textarea name="publications" rows="12" spellcheck="false"></textarea>
-          </label>
-          <label>
-            Projects
-            <textarea name="projects" rows="12" spellcheck="false"></textarea>
-          </label>
-          <label>
-            Achievements
-            <p class="editor-help">
-              Add one JSON object per photo. Use <code>category</code> to group it under Achievements,
-              Fun &amp; Memories, or Travel &amp; Outdoors. Put each image in
-              <code>frontend/assets/</code> and use a path such as <code>assets/award-photo.jpg</code>.
-              Supported fields: category, title, date, issuer, description, details, image, alt, and url.
-              Example: <code>{"category":"Achievements","title":"Best Poster Award","date":"2025","issuer":"Conference Name","image":"assets/poster-award.jpg","alt":"Award certificate"}</code>
-            </p>
-            <textarea name="achievements" rows="12" spellcheck="false"></textarea>
-          </label>
-          <label>
-            Education
-            <textarea name="education" rows="10" spellcheck="false"></textarea>
-          </label>
-          <label>
-            Skills
-            <textarea name="skills" rows="10" spellcheck="false"></textarea>
-          </label>
-          <label>
-            Teaching
-            <textarea name="teaching" rows="10" spellcheck="false"></textarea>
-          </label>
+          <p id="about-help">Separate paragraphs with a blank line.</p>
         </section>
+
+        <div data-editor-collections></div>
+
+        </fieldset>
 
         <div class="editor-actions">
           <button class="button primary" type="submit">Save Details</button>
@@ -156,6 +125,7 @@
       </form>
     </main>
 
+    <script src="editor-model.js"></script>
     <script src="admin.js"></script>
   </body>
 </html>

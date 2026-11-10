@@ -2,21 +2,35 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.googletagmanager.com; script-src-attr 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' https://www.google-analytics.com https://*.google-analytics.com; connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://pintu-naik-visitor-stats.pintunaik300.workers.dev; object-src 'none'; base-uri 'none'; form-action 'self'" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta
-      name="description"
-      content="Academic profile of Pintu Naik, PhD Scholar in Computer Science and Engineering at the Indian Institute of Technology Jammu."
-    />
+    <meta name="description" content="My research focuses on parallel and distributed algorithms, with interests in scalability, communication efficiency, complexity analysis, and reliable computation." />
     <meta name="author" content="Pintu Naik" />
     <title>Pintu Naik | Academic Profile</title>
     <link rel="stylesheet" href="styles.css" />
+    <!-- Site metadata -->
+    <link rel="canonical" href="https://pintu300.github.io/pintu-naik-academic-profile/" />
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Pintu Naik" />
+    <meta property="og:title" content="Pintu Naik | Academic Profile" />
+    <meta property="og:description" content="My research focuses on parallel and distributed algorithms, with interests in scalability, communication efficiency, complexity analysis, and reliable computation." />
+    <meta property="og:url" content="https://pintu300.github.io/pintu-naik-academic-profile/" />
+    <meta property="og:image" content="https://pintu300.github.io/pintu-naik-academic-profile/assets/Photo.jpeg" />
+    <meta property="og:image:alt" content="Portrait of Pintu Naik" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Pintu Naik | Academic Profile" />
+    <meta name="twitter:description" content="My research focuses on parallel and distributed algorithms, with interests in scalability, communication efficiency, complexity analysis, and reliable computation." />
+    <meta name="twitter:image" content="https://pintu300.github.io/pintu-naik-academic-profile/assets/Photo.jpeg" />
+    <!-- End site metadata -->
   </head>
-  <body class="academic-site" data-page-title="Academic Profile" data-page-hero-image="assets/research-graph-computing.jpg">
+  <body class="academic-site" data-page-title="Academic Profile" data-page-hero-image="assets/optimized/research-graph-computing-960.webp">
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="academic-header">
       <nav class="academic-nav" aria-label="Primary navigation">
         <a class="academic-brand" href="index.html" aria-label="Pintu Naik, home">
-          <img class="academic-brand__photo" data-profile-photo src="assets/Photo.jpeg" alt="" />
+          <img class="academic-brand__photo" data-profile-photo src="assets/optimized/Photo-96.webp" alt="" srcset="assets/optimized/Photo-96.webp 96w, assets/optimized/Photo-320.webp 320w, assets/optimized/Photo-640.webp 640w" sizes="40px" width="96" height="123" data-profile-source="assets/Photo.jpeg" />
           <span>
             <strong data-profile="name">Pintu Naik</strong>
             <small data-profile="shortTitle">PhD Scholar · IIT Jammu</small>
@@ -40,6 +54,7 @@
     </header>
 
     <main id="main">
+      <noscript><p class="content-status">Enable JavaScript to view the latest academic information.</p></noscript>
       <section class="profile-hero" id="home" aria-labelledby="profile-name" data-reveal>
         <div class="profile-hero__copy">
           <p class="academic-eyebrow">Academic profile</p>
@@ -60,7 +75,7 @@
           </div>
         </div>
         <figure class="profile-hero__portrait">
-          <img data-profile-photo src="assets/Photo.jpeg" alt="Portrait of Pintu Naik" />
+          <img data-profile-photo src="assets/optimized/Photo-320.webp" alt="Portrait of Pintu Naik" srcset="assets/optimized/Photo-96.webp 96w, assets/optimized/Photo-320.webp 320w, assets/optimized/Photo-640.webp 640w" sizes="(max-width: 540px) 240px, (max-width: 920px) 210px, 280px" width="320" height="408" data-profile-source="assets/Photo.jpeg" fetchpriority="high" />
         </figure>
       </section>
 
@@ -85,6 +100,20 @@
         </div>
       </section>
 
+      <section class="academic-section" aria-labelledby="selected-publications-title" data-reveal>
+        <div class="academic-section__inner">
+          <div class="academic-section__heading">
+            <p class="academic-eyebrow">Selected work</p>
+            <h2 id="selected-publications-title">Recent publications</h2>
+            <p>Recent accepted and published research. See the full list for submissions and earlier work.</p>
+          </div>
+          <div class="academic-record-list" data-selected-publications>
+            <p class="academic-empty-state">Loading publications…</p>
+          </div>
+          <p><a class="academic-button academic-button--outline" href="publications.html">View all publications →</a></p>
+        </div>
+      </section>
+
       <section class="academic-section research-themes" aria-labelledby="research-themes-title" data-reveal>
         <div class="academic-section__inner">
           <div class="academic-section__heading">
@@ -98,11 +127,11 @@
             <article class="research-theme">
               <div class="research-theme__visual" aria-hidden="true">
                 <img
-                  src="assets/research-graph-computing.jpg"
+                  src="assets/optimized/research-graph-computing-480.webp"
                   alt=""
                   loading="lazy"
                   decoding="async"
-                />
+                srcset="assets/optimized/research-graph-computing-480.webp 480w, assets/optimized/research-graph-computing-960.webp 960w" sizes="(max-width: 540px) calc(100vw - 32px), (max-width: 920px) calc((100vw - 64px) / 2), 320px" width="480" height="320" />
               </div>
               <div class="research-theme__copy">
                 <span class="research-theme__index">01 / ALGORITHMS</span>
@@ -113,11 +142,11 @@
             <article class="research-theme">
               <div class="research-theme__visual" aria-hidden="true">
                 <img
-                  src="assets/research-nanopore-lab.jpg"
+                  src="assets/optimized/research-nanopore-lab-480.webp"
                   alt=""
                   loading="lazy"
                   decoding="async"
-                />
+                srcset="assets/optimized/research-nanopore-lab-480.webp 480w, assets/optimized/research-nanopore-lab-960.webp 960w" sizes="(max-width: 540px) calc(100vw - 32px), (max-width: 920px) calc((100vw - 64px) / 2), 320px" width="480" height="320" />
               </div>
               <div class="research-theme__copy">
                 <span class="research-theme__index">02 / SIGNALS</span>
@@ -128,11 +157,11 @@
             <article class="research-theme">
               <div class="research-theme__visual" aria-hidden="true">
                 <img
-                  src="assets/research-distributed-systems.jpg"
+                  src="assets/optimized/research-distributed-systems-480.webp"
                   alt=""
                   loading="lazy"
                   decoding="async"
-                />
+                srcset="assets/optimized/research-distributed-systems-480.webp 480w, assets/optimized/research-distributed-systems-960.webp 960w" sizes="(max-width: 540px) calc(100vw - 32px), (max-width: 920px) calc((100vw - 64px) / 2), 320px" width="480" height="269" />
               </div>
               <div class="research-theme__copy">
                 <span class="research-theme__index">03 / SYSTEMS</span>
@@ -177,7 +206,7 @@
           <div class="academic-card-grid academic-card-grid--links">
             <a class="academic-card academic-card--link" href="research.html">
               <span class="academic-card--link__visual" aria-hidden="true">
-                <img src="assets/research-graph-computing.jpg" alt="" loading="lazy" decoding="async" />
+                <img src="assets/optimized/research-graph-computing-480.webp" alt="" loading="lazy" decoding="async" srcset="assets/optimized/research-graph-computing-480.webp 480w, assets/optimized/research-graph-computing-960.webp 960w" sizes="(max-width: 540px) calc(100vw - 32px), (max-width: 920px) calc((100vw - 64px) / 2), 320px" width="480" height="320" />
               </span>
               <span class="academic-card--link__copy">
                 <span class="academic-card--link__index">01 / RESEARCH</span>
@@ -188,7 +217,7 @@
             </a>
             <a class="academic-card academic-card--link" href="publications.html">
               <span class="academic-card--link__visual" aria-hidden="true">
-                <img src="assets/profile-publications.jpg" alt="" loading="lazy" decoding="async" />
+                <img src="assets/optimized/profile-publications-480.webp" alt="" loading="lazy" decoding="async" srcset="assets/optimized/profile-publications-480.webp 480w, assets/optimized/profile-publications-960.webp 800w" sizes="(max-width: 540px) calc(100vw - 32px), (max-width: 920px) calc((100vw - 64px) / 2), 320px" width="480" height="361" />
               </span>
               <span class="academic-card--link__copy">
                 <span class="academic-card--link__index">02 / SCHOLARLY WORK</span>
@@ -199,7 +228,7 @@
             </a>
             <a class="academic-card academic-card--link" href="projects.html">
               <span class="academic-card--link__visual" aria-hidden="true">
-                <img src="assets/profile-projects.jpg" alt="" loading="lazy" decoding="async" />
+                <img src="assets/optimized/profile-projects-480.webp" alt="" loading="lazy" decoding="async" srcset="assets/optimized/profile-projects-480.webp 480w, assets/optimized/profile-projects-960.webp 800w" sizes="(max-width: 540px) calc(100vw - 32px), (max-width: 920px) calc((100vw - 64px) / 2), 320px" width="480" height="320" />
               </span>
               <span class="academic-card--link__copy">
                 <span class="academic-card--link__index">03 / INNOVATION</span>
@@ -210,7 +239,7 @@
             </a>
             <a class="academic-card academic-card--link" href="teaching.html">
               <span class="academic-card--link__visual" aria-hidden="true">
-                <img src="assets/profile-teaching.jpg" alt="" loading="lazy" decoding="async" />
+                <img src="assets/optimized/profile-teaching-480.webp" alt="" loading="lazy" decoding="async" srcset="assets/optimized/profile-teaching-480.webp 480w, assets/optimized/profile-teaching-960.webp 800w" sizes="(max-width: 540px) calc(100vw - 32px), (max-width: 920px) calc((100vw - 64px) / 2), 320px" width="480" height="299" />
               </span>
               <span class="academic-card--link__copy">
                 <span class="academic-card--link__index">04 / TEACHING</span>
@@ -221,7 +250,7 @@
             </a>
             <a class="academic-card academic-card--link" href="achievements.html">
               <span class="academic-card--link__visual" aria-hidden="true">
-                <img src="assets/profile-achievements.jpg" alt="" loading="lazy" decoding="async" />
+                <img src="assets/optimized/profile-achievements-480.webp" alt="" loading="lazy" decoding="async" srcset="assets/optimized/profile-achievements-480.webp 480w, assets/optimized/profile-achievements-960.webp 800w" sizes="(max-width: 540px) calc(100vw - 32px), (max-width: 920px) calc((100vw - 64px) / 2), 320px" width="480" height="320" />
               </span>
               <span class="academic-card--link__copy">
                 <span class="academic-card--link__index">05 / MILESTONES</span>
@@ -232,7 +261,7 @@
             </a>
             <a class="academic-card academic-card--link" href="education.html">
               <span class="academic-card--link__visual" aria-hidden="true">
-                <img src="assets/profile-education.jpg" alt="" loading="lazy" decoding="async" />
+                <img src="assets/optimized/profile-education-480.webp" alt="" loading="lazy" decoding="async" srcset="assets/optimized/profile-education-480.webp 480w, assets/optimized/profile-education-960.webp 800w" sizes="(max-width: 540px) calc(100vw - 32px), (max-width: 920px) calc((100vw - 64px) / 2), 320px" width="480" height="320" />
               </span>
               <span class="academic-card--link__copy">
                 <span class="academic-card--link__index">06 / EDUCATION</span>
@@ -243,7 +272,7 @@
             </a>
             <a class="academic-card academic-card--link" href="cv.html">
               <span class="academic-card--link__visual" aria-hidden="true">
-                <img src="assets/profile-cv.jpg" alt="" loading="lazy" decoding="async" />
+                <img src="assets/optimized/profile-cv-480.webp" alt="" loading="lazy" decoding="async" srcset="assets/optimized/profile-cv-480.webp 480w, assets/optimized/profile-cv-960.webp 800w" sizes="(max-width: 540px) calc(100vw - 32px), (max-width: 920px) calc((100vw - 64px) / 2), 320px" width="480" height="361" />
               </span>
               <span class="academic-card--link__copy">
                 <span class="academic-card--link__index">07 / CAREER</span>
@@ -266,12 +295,13 @@
           <div
             class="visitor-stats__panel"
             data-visitor-stats
+            data-start-date="2026-11-10"
             data-endpoint="https://pintu-naik-visitor-stats.pintunaik300.workers.dev/api/visitor-stats"
           >
             <div class="visitor-stats__summary">
               <span class="visitor-stats__label">Total visitors</span>
               <strong class="visitor-stats__total" data-visitor-total>—</strong>
-              <span class="visitor-stats__period" data-visitor-period>Unique visitors</span>
+              <span class="visitor-stats__period" data-visitor-period>Unique visitors since 2026-11-10</span>
             </div>
             <div class="visitor-stats__countries">
               <div class="visitor-stats__countries-heading">
@@ -279,8 +309,9 @@
                 <span>Top countries</span>
               </div>
               <p class="visitor-stats__status" data-visitor-status role="status" aria-live="polite">
-                Setup required: connect the secure visitor-statistics service to show live counts.
+                Loading visitor statistics…
               </p>
+              <button class="academic-button academic-button--outline" type="button" data-visitor-retry hidden>Try again</button>
               <ul class="visitor-stats__list" data-visitor-list aria-label="Visitors by country" hidden></ul>
             </div>
             <p class="visitor-stats__updated" data-visitor-updated></p>
@@ -292,7 +323,7 @@
         <div class="academic-section__inner academic-contact__inner">
           <div>
             <p class="academic-eyebrow">Contact</p>
-            <h2 id="contact-title">Get in touch</h2>
+            <h2 id="contact-title" data-profile="contactHeading">Get in touch</h2>
             <p data-profile="contactText">For academic correspondence or research discussions, please contact me by email.</p>
           </div>
           <div class="academic-contact__links">
@@ -316,6 +347,7 @@
     </footer>
     <script src="analytics.js"></script>
     <script src="visitor-stats.js"></script>
+    <script src="catalog.js"></script>
     <script src="script.js"></script>
   </body>
 </html>

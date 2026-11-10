@@ -10,3 +10,14 @@ yarn-error.log*
 dist/
 build/
 coverage/
+
+# Local credentials and signing keys
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+*.pem
+*.key
+
+# Local browser screenshots and QA measurements
+artifacts/

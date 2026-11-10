@@ -2,16 +2,33 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.googletagmanager.com; script-src-attr 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' https://www.google-analytics.com https://*.google-analytics.com; connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://pintu-naik-visitor-stats.pintunaik300.workers.dev; object-src 'none'; base-uri 'none'; form-action 'self'" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Publications by Pintu Naik, PhD Scholar at IIT Jammu." />
-    <title>Publications | Pintu Naik</title>
+    <meta name="description" content="Publications, accepted papers, and submissions by Pintu Naik." />
+    <title>Pintu Naik | Publications</title>
     <link rel="stylesheet" href="styles.css" />
+    <!-- Site metadata -->
+    <link rel="canonical" href="https://pintu300.github.io/pintu-naik-academic-profile/publications.html" />
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Pintu Naik" />
+    <meta property="og:title" content="Pintu Naik | Publications" />
+    <meta property="og:description" content="Publications, accepted papers, and submissions by Pintu Naik." />
+    <meta property="og:url" content="https://pintu300.github.io/pintu-naik-academic-profile/publications.html" />
+    <meta property="og:image" content="https://pintu300.github.io/pintu-naik-academic-profile/assets/Photo.jpeg" />
+    <meta property="og:image:alt" content="Portrait of Pintu Naik" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Pintu Naik | Publications" />
+    <meta name="twitter:description" content="Publications, accepted papers, and submissions by Pintu Naik." />
+    <meta name="twitter:image" content="https://pintu300.github.io/pintu-naik-academic-profile/assets/Photo.jpeg" />
+    <!-- End site metadata -->
   </head>
-  <body class="academic-site" data-page-title="Publications" data-page-hero-image="assets/profile-publications.jpg">
+  <body class="academic-site" data-page-title="Publications" data-page-hero-image="assets/optimized/profile-publications-960.webp">
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="academic-header">
       <nav class="academic-nav" aria-label="Primary navigation">
-        <a class="academic-brand" href="index.html" aria-label="Pintu Naik, home"><img class="academic-brand__photo" data-profile-photo src="assets/Photo.jpeg" alt="" /><span><strong data-profile="name">Pintu Naik</strong><small data-profile="shortTitle">PhD Scholar · IIT Jammu</small></span></a>
+        <a class="academic-brand" href="index.html" aria-label="Pintu Naik, home"><img class="academic-brand__photo" data-profile-photo src="assets/optimized/Photo-96.webp" alt="" srcset="assets/optimized/Photo-96.webp 96w, assets/optimized/Photo-320.webp 320w, assets/optimized/Photo-640.webp 640w" sizes="40px" width="96" height="123" data-profile-source="assets/Photo.jpeg" /><span><strong data-profile="name">Pintu Naik</strong><small data-profile="shortTitle">PhD Scholar · IIT Jammu</small></span></a>
         <button class="academic-nav__toggle" type="button" aria-expanded="false" aria-controls="academic-menu" aria-label="Toggle navigation"><span></span><span></span><span></span></button>
         <div class="academic-nav__links" id="academic-menu">
           <a href="index.html">Home</a><a href="research.html">Research</a><a class="is-current" href="publications.html" aria-current="page">Publications</a><a href="projects.html">Projects</a><a href="teaching.html">Teaching</a><a href="achievements.html">Achievements</a><a href="education.html">Education</a><a href="cv.html">CV</a><a href="index.html#contact">Contact</a>
@@ -19,36 +36,67 @@
       </nav>
     </header>
     <main id="main">
+      <noscript><p class="content-status">Enable JavaScript to view the latest academic information.</p></noscript>
       <header class="academic-page-heading" data-reveal>
         <p class="academic-eyebrow">Research output</p>
         <h1>Publications</h1>
         <p>Peer-reviewed papers, preprints, and other scholarly publications.</p>
       </header>
       <section class="academic-page-content" data-reveal aria-label="Publication list">
-        <div class="publication-toolbar">
-          <p>Browse by publication type and sort entries by year.</p>
-          <button class="publication-sort" type="button" data-publication-sort aria-pressed="false" aria-label="Change sort order to oldest first">
-            Newest → oldest
-          </button>
-        </div>
-        <div class="publication-categories">
+        <fieldset class="catalog-controls" data-publication-controls disabled>
+          <legend class="sr-only">Publication search and filters</legend>
+          <div class="catalog-filters">
+            <label class="catalog-search">Search publications
+              <input type="search" data-publication-query placeholder="Title, author, topic, or venue" maxlength="200" aria-controls="publication-results" />
+            </label>
+            <label>Type
+              <select data-publication-type aria-controls="publication-results">
+                <option value="">All types</option><option value="conference">Conferences</option><option value="journal">Journals</option><option value="bookChapter">Book chapters</option>
+              </select>
+            </label>
+            <label>Year<select data-publication-year aria-controls="publication-results"><option value="">All years</option></select></label>
+            <label>Status<select data-publication-status aria-controls="publication-results"><option value="">All statuses</option></select></label>
+          </div>
+          <div class="catalog-actions">
+            <button class="publication-sort" type="button" data-publication-sort aria-pressed="false" aria-label="Change sort order to oldest first">Newest → oldest</button>
+            <button class="publication-sort" type="button" data-publication-reset>Reset filters</button>
+            <button class="publication-sort" type="button" data-publication-export disabled>Export results as BibTeX</button>
+            <button class="publication-sort" type="button" data-publication-share>Share this view</button>
+          </div>
+          <p class="catalog-count" data-publication-count role="status" aria-live="polite">Loading publications…</p>
+          <label data-share-field hidden>Link to this view<input type="url" data-share-url readonly /></label>
+          <p data-share-status role="status" aria-live="polite"></p>
+        </fieldset>
+        <p class="academic-empty-state" data-publication-empty hidden>No publications match your filters. Try a broader search or reset the filters.</p>
+        <div class="publication-categories" id="publication-results">
           <section aria-labelledby="conference-publications-title">
             <h2 id="conference-publications-title">Conferences</h2>
-            <div class="academic-record-list" data-publications-category="conference" aria-live="polite"></div>
+            <div class="academic-record-list" data-publications-category="conference"></div>
           </section>
           <section aria-labelledby="journal-publications-title">
             <h2 id="journal-publications-title">Journals</h2>
-            <div class="academic-record-list" data-publications-category="journal" aria-live="polite"></div>
+            <div class="academic-record-list" data-publications-category="journal"></div>
           </section>
           <section aria-labelledby="book-publications-title">
             <h2 id="book-publications-title">Book Chapters</h2>
-            <div class="academic-record-list" data-publications-category="bookChapter" aria-live="polite"></div>
+            <div class="academic-record-list" data-publications-category="bookChapter"></div>
           </section>
         </div>
       </section>
     </main>
     <footer class="academic-footer"><p>© <span data-year></span> <span data-profile="name">Pintu Naik</span></p><a href="index.html">Home</a></footer>
+    <dialog class="citation-dialog" data-citation-dialog aria-labelledby="citation-title">
+      <div class="citation-dialog__heading"><h2 id="citation-title">Citation</h2><button type="button" data-citation-close aria-label="Close citation">×</button></div>
+      <p data-citation-paper></p>
+      <label>Format<select data-citation-format><option value="text">Plain citation</option><option value="bibtex">BibTeX</option></select></label>
+      <label>Citation text<textarea data-citation-text rows="9" readonly spellcheck="false"></textarea></label>
+      <p class="catalog-hint">Uses the listed metadata and preserves acceptance or submission status. Review the citation before using it in a manuscript.</p>
+      <div class="catalog-actions"><button class="publication-sort" type="button" data-citation-copy>Copy citation</button><button class="publication-sort" type="button" data-citation-download>Download BibTeX</button></div>
+      <p data-citation-status role="status" aria-live="polite"></p>
+    </dialog>
     <script src="analytics.js"></script>
+    <script src="catalog.js"></script>
     <script src="script.js"></script>
+    <script src="catalog-ui.js"></script>
   </body>
 </html>

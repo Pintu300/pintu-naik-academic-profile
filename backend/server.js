@@ -1,12 +1,23 @@
 const http = require("node:http");
 const fs = require("node:fs/promises");
 const path = require("node:path");
-const { timingSafeEqual, randomUUID } = require("node:crypto");
+const { timingSafeEqual, randomUUID, createHash } = require("node:crypto");
+const { gzipSync } = require("node:zlib");
 
 const ROOT_DIR = path.resolve(__dirname, "..");
 const FRONTEND_DIR = path.join(ROOT_DIR, "frontend");
 const DATA_DIR = path.join(__dirname, "data");
 const MAX_BODY_BYTES = 1_000_000;
+const { createAdminAuth } = require("./auth");
+const CONTENT_SECURITY_POLICY = [
+  "default-src 'self'",
+  "script-src 'self' https://www.googletagmanager.com",
+  "script-src-attr 'none'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' https://www.google-analytics.com https://*.google-analytics.com",
+  "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://pintu-naik-visitor-stats.pintunaik300.workers.dev",
+  "object-src 'none'", "base-uri 'none'", "form-action 'self'", "frame-ancestors 'none'"
+].join("; ");
 
 const DATA_FILES = Object.freeze({
   profile: "profile.json",
@@ -46,8 +57,8 @@ const MIME_TYPES = Object.freeze({
   ".png": "image/png",
   ".svg": "image/svg+xml",
   ".ttf": "font/ttf",
-  ".webp": "image/webp"
-  ,".woff": "font/woff",
+  ".webp": "image/webp",
+  ".woff": "font/woff",
   ".woff2": "font/woff2"
 });
 
@@ -66,14 +77,30 @@ class InvalidJsonError extends Error {
 }
 
 const send = (request, response, statusCode, body, contentType = "text/plain; charset=utf-8") => {
+  let payload = Buffer.isBuffer(body) ? body : Buffer.from(body);
+  if (/^(text\/|application\/json|image\/svg\+xml)/.test(contentType)) {
+    response.setHeader("Vary", "Accept-Encoding");
+    const gzipAllowed = (request.headers["accept-encoding"] || "").split(",").some((encoding) => {
+      const [name, ...parameters] = encoding.trim().split(";");
+      const quality = parameters.find((parameter) => parameter.trim().startsWith("q="));
+      return name.toLowerCase() === "gzip" && (!quality || Number(quality.trim().slice(2)) > 0);
+    });
+    if (statusCode === 200 && payload.length >= 1024 && gzipAllowed) {
+      payload = gzipSync(payload);
+      response.setHeader("Content-Encoding", "gzip");
+    }
+  }
   response.writeHead(statusCode, {
     "Content-Type": contentType,
-    "Cache-Control": "no-store",
+    "Cache-Control": response.getHeader("Cache-Control") || "no-store",
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "strict-origin-when-cross-origin",
-    "X-Frame-Options": "DENY"
+    "X-Frame-Options": "DENY",
+    "Content-Security-Policy": CONTENT_SECURITY_POLICY,
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=()",
+    "Cross-Origin-Resource-Policy": "same-origin"
   });
-  response.end(request.method === "HEAD" ? undefined : body);
+  response.end(request.method === "HEAD" ? undefined : payload);
 };
 
 const sendJson = (request, response, statusCode, payload) => {
@@ -135,36 +162,10 @@ const readRequestBody = (request, maxBodyBytes) =>
     request.on("error", reject);
   });
 
-const parseBasicCredentials = (request) => {
-  const authorization = request.headers.authorization || "";
-  const match = /^Basic\s+([A-Za-z0-9+/]+={0,2})$/i.exec(authorization);
-  if (!match) return null;
-
-  const decoded = Buffer.from(match[1], "base64").toString("utf8");
-  const separator = decoded.indexOf(":");
-  if (separator < 0) return null;
-
-  return {
-    username: decoded.slice(0, separator),
-    password: decoded.slice(separator + 1)
-  };
-};
-
 const constantTimeEquals = (value, expected) => {
   const valueBuffer = Buffer.from(value);
   const expectedBuffer = Buffer.from(expected);
   return valueBuffer.length === expectedBuffer.length && timingSafeEqual(valueBuffer, expectedBuffer);
-};
-
-const isAdminRequest = (request, adminUser, adminPassword) => {
-  if (!adminPassword) return false;
-
-  const credentials = parseBasicCredentials(request);
-  if (!credentials) return false;
-
-  const usernameMatches = constantTimeEquals(credentials.username, adminUser);
-  const passwordMatches = constantTimeEquals(credentials.password, adminPassword);
-  return usernameMatches && passwordMatches;
 };
 
 const validateSiteData = (data) => {
@@ -194,6 +195,55 @@ const validateSiteData = (data) => {
   );
 
   if (missingField) return `Missing profile field: ${missingField}.`;
+
+  const safeAsset = (value) => /^assets\/[A-Za-z0-9._/-]+$/.test(value)
+    && !value.split("/").some((part) => !part || part.startsWith("."));
+  const safeUrl = (value) => {
+    try {
+      const url = new URL(value);
+      return ["http:", "https:"].includes(url.protocol) && !url.username && !url.password;
+    } catch {
+      return false;
+    }
+  };
+  const validateFields = (record) => {
+    for (const [key, value] of Object.entries(record)) {
+      if (["__proto__", "constructor", "prototype"].includes(key)) return "Reserved field name.";
+      if (typeof value !== "string") return `${key} must be text.`;
+      if (value.length > 20_000 || /[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(value)) {
+        return `${key} contains invalid or excessive text.`;
+      }
+      if (!value) continue;
+      if (["photo", "image", "institutionLogo"].includes(key) && !safeAsset(value)) {
+        return `${key} must be a local assets/ path.`;
+      }
+      if (["url", "doi", "pdf", "codeUrl", "demoUrl"].includes(key) && !safeUrl(value)
+        && !(key === "pdf" && safeAsset(value) && /\.pdf$/i.test(value))) {
+        return `${key} must be an HTTP(S) URL or supported local PDF path.`;
+      }
+    }
+    return null;
+  };
+  const { about, links, ...profileFields } = data.profile;
+  if (about !== undefined && (!Array.isArray(about)
+    || about.length > 100 || about.some((text) => typeof text !== "string" || text.length > 20_000))) {
+    return "Profile about must be an array of text paragraphs.";
+  }
+  if (links !== undefined && (!links || typeof links !== "object" || Array.isArray(links)
+    || Object.entries(links).some(([key, url]) => ["__proto__", "constructor", "prototype"].includes(key)
+      || typeof url !== "string" || (url !== "" && !safeUrl(url))))) {
+    return "Profile links must contain HTTP(S) URLs.";
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.profile.email)) return "Invalid profile email.";
+  const profileError = validateFields(profileFields);
+  if (profileError) return profileError;
+  for (const field of Object.keys(DATA_FILES).filter((key) => key !== "profile")) {
+    if (data[field].length > 1000) return `${field} has too many entries.`;
+    for (const item of data[field]) {
+      const error = validateFields(item);
+      if (error) return `${field}: ${error}`;
+    }
+  }
   return null;
 };
 
@@ -274,24 +324,23 @@ const writeSiteData = async (dataDir, data) => {
   return null;
 };
 
-const sendUnauthorized = (request, response) => {
-  response.setHeader("WWW-Authenticate", 'Basic realm="Website Admin", charset="UTF-8"');
-  sendJson(request, response, 401, { error: "Authentication required." });
-};
-
-const serveAdminApi = async (request, response, dataDir, adminUser, adminPassword, maxBodyBytes) => {
-  if (!isAdminRequest(request, adminUser, adminPassword)) {
-    sendUnauthorized(request, response);
-    return;
-  }
-
+const serveAdminApi = async (request, response, dataDir, maxBodyBytes, csrfToken, saveData, adminOrigin) => {
   if (request.method === "GET" || request.method === "HEAD") {
+    response.setHeader("X-CSRF-Token", csrfToken);
     sendJson(request, response, 200, await readSiteData(dataDir));
     return;
   }
 
   if (request.method !== "PUT") {
     sendMethodNotAllowed(request, response, ["GET", "HEAD", "PUT"]);
+    return;
+  }
+
+  const origin = adminOrigin || `${request.socket.encrypted ? "https" : "http"}://${request.headers.host}`;
+  if (request.headers["sec-fetch-site"] === "cross-site"
+    || (request.headers.origin && request.headers.origin !== origin)
+    || !constantTimeEquals(request.headers["x-csrf-token"] || "", csrfToken)) {
+    sendJson(request, response, 403, { error: "Invalid admin request. Reload the editor and try again." });
     return;
   }
 
@@ -315,7 +364,7 @@ const serveAdminApi = async (request, response, dataDir, adminUser, adminPasswor
     throw new InvalidJsonError();
   }
 
-  const validationError = await writeSiteData(dataDir, nextData);
+  const validationError = await saveData(nextData);
   if (validationError) {
     sendJson(request, response, 400, { error: validationError });
     return;
@@ -336,17 +385,20 @@ const resolveStaticPath = (frontendDir, pathname) => {
   const filePath = path.resolve(frontendDir, requestedPath);
   const relativePath = path.relative(frontendDir, filePath);
 
-  if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) return null;
+  if (relativePath.startsWith("..") || path.isAbsolute(relativePath)
+    || requestedPath.split(/[\\/]/).some((part) => part.startsWith("."))
+    || (!requestedPath.startsWith("assets/") && requestedPath.includes("/"))
+    || !Object.hasOwn(MIME_TYPES, path.extname(filePath).toLowerCase())) return null;
   return filePath;
 };
 
-const serveStatic = async (request, response, frontendDir) => {
+const serveStatic = async (request, response, frontendDir, pathname) => {
   if (request.method !== "GET" && request.method !== "HEAD") {
     sendMethodNotAllowed(request, response, ["GET", "HEAD"]);
     return;
   }
 
-  const filePath = resolveStaticPath(frontendDir, new URL(request.url, "http://localhost").pathname);
+  const filePath = resolveStaticPath(frontendDir, pathname);
   if (!filePath) {
     sendJson(request, response, 403, { error: "Forbidden." });
     return;
@@ -354,6 +406,15 @@ const serveStatic = async (request, response, frontendDir) => {
 
   let file;
   try {
+    // Reject symlink aliases, including aliases to protected admin files.
+    if (await fs.realpath(filePath) !== filePath) {
+      sendJson(request, response, 403, { error: "Forbidden." });
+      return;
+    }
+    if (!(await fs.stat(filePath)).isFile()) {
+      sendJson(request, response, 404, { error: "Not found." });
+      return;
+    }
     file = await fs.readFile(filePath);
   } catch (error) {
     if (error.code === "ENOENT" || error.code === "ENOTDIR") {
@@ -364,6 +425,17 @@ const serveStatic = async (request, response, frontendDir) => {
   }
 
   const contentType = MIME_TYPES[path.extname(filePath).toLowerCase()] || "application/octet-stream";
+  if (!filePath.endsWith(".html") && !["/admin.js", "/editor-model.js", "/login.js"].includes(pathname)) {
+    const tag = `W/"${createHash("sha256").update(file).digest("hex")}"`;
+    response.setHeader("ETag", tag);
+    response.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
+    response.setHeader("Vary", "Accept-Encoding");
+    const candidates = (request.headers["if-none-match"] || "").split(",").map((candidate) => candidate.trim().replace(/^W\//, ""));
+    if (candidates.includes(tag.slice(2)) || candidates.includes("*")) {
+      send(request, response, 304, "", contentType);
+      return;
+    }
+  }
   send(request, response, 200, file, contentType);
 };
 
@@ -382,14 +454,15 @@ const serveApi = async (request, response, pathname, options) => {
       request,
       response,
       options.dataDir,
-      options.adminUser,
-      options.adminPassword,
-      options.maxBodyBytes
+      options.maxBodyBytes,
+      request.adminSession.csrfToken,
+      options.saveData,
+      options.adminOrigin
     );
     return;
   }
 
-  const resource = API_RESOURCES[pathname];
+  const resource = Object.hasOwn(API_RESOURCES, pathname) ? API_RESOURCES[pathname] : null;
   if (!resource) {
     sendJson(request, response, 404, { error: "API route not found." });
     return;
@@ -406,15 +479,40 @@ const serveApi = async (request, response, pathname, options) => {
 const createServer = ({
   adminUser = process.env.ADMIN_USER || "admin",
   adminPassword = process.env.ADMIN_PASSWORD || "",
+  adminOrigin = process.env.ADMIN_ORIGIN || "",
   frontendDir = FRONTEND_DIR,
   dataDir = DATA_DIR,
-  maxBodyBytes = MAX_BODY_BYTES
+  maxBodyBytes = MAX_BODY_BYTES,
+  now = Date.now
 } = {}) => {
-  const options = { adminUser, adminPassword, frontendDir, dataDir, maxBodyBytes };
+  if (adminOrigin && (!/^https?:\/\//.test(adminOrigin) || new URL(adminOrigin).origin !== adminOrigin)) {
+    throw new Error("ADMIN_ORIGIN must be an exact HTTP(S) origin without a trailing slash.");
+  }
+  const auth = createAdminAuth({ adminUser, adminPassword, adminOrigin, sendJson, readRequestBody, now });
+  let pendingWrite = Promise.resolve();
+  const saveData = (data) => {
+    const result = pendingWrite.then(() => writeSiteData(dataDir, data));
+    pendingWrite = result.catch(() => {});
+    return result;
+  };
+  const options = { adminUser, adminPassword, frontendDir, dataDir, maxBodyBytes, saveData, adminOrigin };
 
-  return http.createServer(async (request, response) => {
+  const server = http.createServer(async (request, response) => {
     try {
-      const requestUrl = new URL(request.url, "http://localhost");
+      let pathname;
+      try {
+        if (!request.url.startsWith("/") || request.url.startsWith("//")) throw new Error();
+        pathname = decodeURIComponent(new URL(request.url, "http://localhost").pathname);
+        if (/[\\\u0000-\u001f\u007f%]/.test(pathname) || pathname.split("/").includes("..")) throw new Error();
+        pathname = path.posix.normalize(pathname);
+      } catch {
+        sendJson(request, response, 400, { error: "Invalid request path." });
+        return;
+      }
+      const requestUrl = { pathname };
+      if (await auth.handleAuth(request, response, pathname)) return;
+      if ((["/admin.html", "/admin.js"].includes(pathname) || pathname.startsWith("/api/admin/"))
+        && !auth.authorize(request, response, pathname)) return;
 
       if (requestUrl.pathname.startsWith("/api/")) {
         await serveApi(request, response, requestUrl.pathname, options);
@@ -428,7 +526,7 @@ const createServer = ({
         }
 
         const resource = /^\/data\/([a-z]+)\.json$/.exec(requestUrl.pathname)?.[1];
-        if (!resource || !DATA_FILES[resource]) {
+        if (!resource || !Object.hasOwn(DATA_FILES, resource)) {
           sendJson(request, response, 404, { error: "Site data file not found." });
           return;
         }
@@ -438,13 +536,7 @@ const createServer = ({
         return;
       }
 
-      if (["/admin.html", "/admin.js"].includes(requestUrl.pathname)
-        && !isAdminRequest(request, options.adminUser, options.adminPassword)) {
-        sendUnauthorized(request, response);
-        return;
-      }
-
-      await serveStatic(request, response, options.frontendDir);
+      await serveStatic(request, response, options.frontendDir, pathname);
     } catch (error) {
       const statusCode = Number.isInteger(error.statusCode) ? error.statusCode : 500;
       if (statusCode >= 500) {
@@ -466,16 +558,28 @@ const createServer = ({
       }
     }
   });
+  server.requestTimeout = 30_000;
+  server.headersTimeout = 10_000;
+  server.keepAliveTimeout = 5_000;
+  server.maxRequestsPerSocket = 100;
+  return server;
 };
 
 const startServer = () => {
   const port = Number(process.env.PORT) || 3000;
-  const host = process.env.HOST || "0.0.0.0";
+  const host = process.env.HOST || "127.0.0.1";
   const server = createServer();
 
-  server.requestTimeout = 30_000;
-  server.headersTimeout = 10_000;
-  server.keepAliveTimeout = 5_000;
+  server.once("error", (error) => {
+    if (error.code === "EADDRINUSE") {
+      console.error(`Cannot start: ${host}:${port} is already in use.`);
+      console.error("Stop the existing server with Ctrl+C in its terminal, or choose another port:");
+      console.error("PORT=3001 npm start (with ADMIN_PASSWORD set to enable admin login)");
+    } else {
+      console.error(`Could not start the server: ${error.message}`);
+    }
+    process.exitCode = 1;
+  });
 
   server.listen(port, host, () => {
     console.log(`Server running at http://${host}:${server.address().port}`);

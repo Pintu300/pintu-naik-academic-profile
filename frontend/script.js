@@ -1,3 +1,6 @@
+const printButton = document.querySelector("[data-print-cv]");
+printButton?.addEventListener("click", () => window.print());
+
 const navigation = document.querySelector(".academic-header");
 const menu = document.querySelector("#academic-menu");
 const menuToggle = document.querySelector(".academic-nav__toggle");
@@ -38,10 +41,14 @@ const setupAchievementDetails = () => {
 
   const closeButton = modal.querySelector(".achievement-detail__close");
   let previouslyFocused = null;
+  let background = [];
+  const panel = modal.querySelector(".achievement-detail__panel");
 
   const close = () => {
     modal.hidden = true;
     document.body.classList.remove("achievement-detail-open");
+    background.forEach(([element, wasInert]) => { element.inert = wasInert; });
+    background = [];
     previouslyFocused?.focus();
   };
 
@@ -51,7 +58,7 @@ const setupAchievementDetails = () => {
 
     const item = JSON.parse(card.dataset.achievement);
     previouslyFocused = card;
-    modal.querySelector("[data-achievement-detail-image]").src = item.image;
+    modal.querySelector("[data-achievement-detail-image]").src = safeAssetPath(item.image) ? item.image : "";
     modal.querySelector("[data-achievement-detail-image]").alt = item.alt || item.title;
     modal.querySelector("[data-achievement-detail-meta]").textContent = [item.date, item.issuer]
       .filter(Boolean)
@@ -61,13 +68,16 @@ const setupAchievementDetails = () => {
     modal.querySelector("[data-achievement-detail-extra]").textContent = item.details || "";
     const link = modal.querySelector("[data-achievement-detail-link]");
 
-    if (typeof item.url === "string" && /^https?:\/\//i.test(item.url)) {
+    if (safeHttpUrl(item.url)) {
       link.href = item.url;
       link.hidden = false;
     } else {
       link.hidden = true;
     }
 
+    background = [...document.querySelectorAll("body > header, body > main, body > footer")]
+      .map((element) => [element, element.inert]);
+    background.forEach(([element]) => { element.inert = true; });
     modal.hidden = false;
     document.body.classList.add("achievement-detail-open");
     closeButton.focus();
@@ -78,7 +88,26 @@ const setupAchievementDetails = () => {
   });
 
   window.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && !modal.hidden) close();
+    if (modal.hidden) return;
+    if (event.key === "Escape") {
+      event.preventDefault();
+      close();
+    } else if (event.key === "Tab") {
+      const focusable = [...panel.querySelectorAll("button, a[href], input, select, textarea, [tabindex]")]
+        .filter((element) => !element.disabled && element.tabIndex >= 0 && !element.closest("[hidden]"));
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!first) {
+        event.preventDefault();
+        panel.focus();
+      } else if (!panel.contains(document.activeElement) || (event.shiftKey && document.activeElement === first)) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
   }, true);
 };
 
@@ -103,6 +132,14 @@ if (menu && menuToggle) {
     menu.classList.toggle("is-open", !isOpen);
   });
 
+  menu.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      menuToggle.setAttribute("aria-expanded", "false");
+      menu.classList.remove("is-open");
+      menuToggle.focus();
+    }
+  });
+
   menu.addEventListener("click", (event) => {
     if (event.target instanceof HTMLAnchorElement) {
       menuToggle.setAttribute("aria-expanded", "false");
@@ -110,6 +147,19 @@ if (menu && menuToggle) {
     }
   });
 }
+
+const safeAssetPath = (value) => typeof value === "string"
+  && /^assets\/[A-Za-z0-9._/-]+$/.test(value)
+  && !value.split("/").some((part) => !part || part.startsWith("."));
+const safeHttpUrl = (value) => {
+  if (typeof value !== "string") return false;
+  try {
+    const url = new URL(value);
+    return ["http:", "https:"].includes(url.protocol) && !url.username && !url.password;
+  } catch {
+    return false;
+  }
+};
 
 const escapeHtml = (value) =>
   String(value)
@@ -141,30 +191,36 @@ const publicationCategoryLabels = {
 };
 let publicationSortDescending = true;
 let publicationItems = [];
+let publicationFilters = {};
+let projectItems = [];
+let projectFilters = {};
 
 const renderPublications = () => {
   const targets = document.querySelectorAll("[data-publications-category]");
   if (!targets.length) return;
 
-  const sortedItems = [...publicationItems].sort((first, second) => {
-    const firstYear = Number.parseInt(first.year, 10);
-    const secondYear = Number.parseInt(second.year, 10);
-    const firstHasYear = Number.isFinite(firstYear);
-    const secondHasYear = Number.isFinite(secondYear);
-
-    if (firstHasYear !== secondHasYear) return firstHasYear ? -1 : 1;
-    if (!firstHasYear) return 0;
-    return publicationSortDescending ? secondYear - firstYear : firstYear - secondYear;
+  const sortedItems = AcademicCatalog.filterPublications(publicationItems, {
+    ...publicationFilters, order: publicationSortDescending ? "newest" : "oldest"
   });
+  const interactive = !!document.querySelector("[data-publication-controls]");
+  const filtered = Object.values(publicationFilters).some(Boolean);
+  const count = document.querySelector("[data-publication-count]");
+  if (count) count.textContent = `${sortedItems.length} of ${publicationItems.length} publication records`;
+  const exportButton = document.querySelector("[data-publication-export]");
+  if (exportButton) exportButton.disabled = sortedItems.length === 0;
+  const empty = document.querySelector("[data-publication-empty]");
+  if (empty) empty.hidden = sortedItems.length > 0;
 
   targets.forEach((target) => {
     const category = target.dataset.publicationsCategory;
     const items = sortedItems.filter((item) => item.type === category);
     const label = publicationCategoryLabels[category] || "Publications";
+    const section = target.closest("section");
+    if (section && interactive) section.hidden = filtered && !items.length;
 
     target.innerHTML = items.length
       ? items.map((item) => `
-        <article class="academic-record">
+        <article class="academic-record" id="${AcademicCatalog.publicationKey(item)}">
           <div class="academic-record__meta">
             <span class="academic-record__year">${escapeHtml(item.year || "")}</span>
             ${item.status ? `<span class="academic-record__status">${escapeHtml(item.status)}</span>` : ""}
@@ -183,7 +239,9 @@ const renderPublications = () => {
               ${externalLink(item.url, "Publication")}
               ${publicationPdfLink(item.pdf)}
               ${externalLink(item.doi, "DOI")}
+              ${interactive ? `<button class="record-action" type="button" data-cite="${AcademicCatalog.publicationKey(item)}" aria-label="Cite ${escapeHtml(item.title || "publication")}">Cite / BibTeX</button>` : ""}
             </div>
+            ${interactive && item.abstract ? `<details class="publication-abstract"><summary>Read abstract</summary><p>${escapeHtml(item.abstract)}</p></details>` : ""}
           </div>
         </article>
       `).join("")
@@ -205,6 +263,32 @@ document.querySelector("[data-publication-sort]")?.addEventListener("click", () 
   publicationSortDescending = !publicationSortDescending;
   renderPublications();
 });
+
+const renderProjects = () => {
+  const visible = AcademicCatalog.filterProjects(projectItems, projectFilters);
+  const count = document.querySelector("[data-project-count]");
+  if (count) count.textContent = `${visible.length} of ${projectItems.length} projects`;
+  const controls = document.querySelector("[data-project-controls]");
+  if (controls) controls.hidden = projectItems.length === 0;
+  renderRecords(
+    "[data-projects-list]",
+    visible,
+    (item) => `
+      <article class="academic-record academic-record--project">
+        <div>
+          ${item.stack ? `<p class="academic-record__venue">${escapeHtml(item.stack)}</p>` : ""}
+          <h3>${escapeHtml(item.title || "Untitled project")}</h3>
+          ${item.description ? `<p>${escapeHtml(item.description)}</p>` : ""}
+          ${item.contribution ? `<p><strong>My contribution:</strong> ${escapeHtml(item.contribution)}</p>` : ""}
+          ${item.results ? `<p><strong>Results:</strong> ${escapeHtml(item.results)}</p>` : ""}
+          <div class="academic-record__links">${externalLink(item.url, "Project details")}${externalLink(item.codeUrl, "Code")}${externalLink(item.demoUrl, "Demo")}</div>
+        </div>
+      </article>
+    `,
+    projectItems.length ? "No projects match these filters." : "Projects will be added here."
+  );
+
+};
 
 const setupNewsCarousel = (updates) => {
   const carousel = document.querySelector("[data-news-carousel]");
@@ -429,13 +513,13 @@ const setupAchievementGalleryAutoScroll = () => {
 };
 
 const externalLink = (url, label) => {
-  if (typeof url !== "string" || !/^https?:\/\//i.test(url)) return "";
+  if (!safeHttpUrl(url)) return "";
   return `<a href="${escapeHtml(url)}" target="_blank" rel="noreferrer">${escapeHtml(label)}</a>`;
 };
 
 const publicationPdfLink = (url) => {
   if (typeof url !== "string") return "";
-  if (/^https?:\/\//i.test(url)) return externalLink(url, "PDF");
+  if (safeHttpUrl(url)) return externalLink(url, "PDF");
   if (!/^assets\/[a-zA-Z0-9._/-]+\.pdf$/i.test(url) || url.split("/").includes("..")) return "";
   return `<a href="${escapeHtml(url)}" download>Download PDF</a>`;
 };
@@ -443,6 +527,7 @@ const publicationPdfLink = (url) => {
 const setProfile = (profile) => {
   const profileFields = {
     name: "name",
+    email: "email",
     shortTitle: "title",
     title: "title",
     institution: "institution",
@@ -450,7 +535,8 @@ const setProfile = (profile) => {
     summary: "summary",
     researchAreas: "researchAreas",
     aboutHeading: "aboutHeading",
-    contactText: "contactText"
+    contactText: "contactText",
+    contactHeading: "contactHeading"
   };
 
   document.querySelectorAll("[data-profile]").forEach((element) => {
@@ -461,24 +547,26 @@ const setProfile = (profile) => {
     }
   });
 
-  document.querySelectorAll("[data-profile-link='email'], [data-contact-link='email']").forEach((link) => {
-    link.href = `mailto:${profile.email}`;
-    if (link.matches("[data-contact-link]")) link.querySelector("strong").textContent = profile.email;
+  document.querySelectorAll("[data-profile-link], [data-contact-link]").forEach((link) => {
+    const key = link.dataset.profileLink || link.dataset.contactLink;
+    if (key === "email") {
+      link.href = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email || "") ? `mailto:${profile.email}` : "#";
+      const label = link.querySelector("strong");
+      if (label) label.textContent = profile.email;
+    } else if (safeHttpUrl(profile.links?.[key])) {
+      link.href = profile.links[key];
+    } else {
+      link.removeAttribute("href");
+    }
   });
 
-  const institutionLink = document.querySelector("[data-contact-link='department']");
-  if (institutionLink && profile.links?.department) {
-    institutionLink.href = profile.links.department;
-  }
-
-  const linkedInLink = document.querySelector("[data-contact-link='linkedin']");
-  if (linkedInLink && profile.links?.linkedin) {
-    linkedInLink.href = profile.links.linkedin;
-  }
-
   document.querySelectorAll("[data-profile-photo]").forEach((image) => {
-    if (profile.photo) {
-      image.src = profile.photo;
+    if (safeAssetPath(profile.photo)) {
+      if (image.dataset.profileSource !== profile.photo) {
+        image.removeAttribute("srcset");
+        image.removeAttribute("sizes");
+        image.src = profile.photo;
+      }
       if (image.alt) {
         image.alt = `Portrait of ${profile.name}`;
       }
@@ -486,7 +574,7 @@ const setProfile = (profile) => {
   });
 
   const pageHeroImage = document.body.dataset.pageHeroImage || profile.photo;
-  if (pageHeroImage) {
+  if (safeAssetPath(pageHeroImage)) {
     document.documentElement.style.setProperty(
       "--page-hero-image",
       `url(${JSON.stringify(pageHeroImage)})`
@@ -496,29 +584,69 @@ const setProfile = (profile) => {
   document.title = `${profile.name} | ${document.body.dataset.pageTitle || "Academic Profile"}`;
 };
 
+const resourceTargets = {
+  research: "[data-research-list], [data-research-titles]",
+  education: "[data-education-list]",
+  updates: "[data-news-list]",
+  publications: "[data-publications-category], [data-selected-publications]",
+  projects: "[data-projects-list]",
+  teaching: "[data-teaching-list]",
+  skills: "[data-skills-list]",
+  achievements: "[data-achievements-list]"
+};
+
+const showContentError = (failed) => {
+  const main = document.querySelector("main");
+  if (!main) return;
+  const status = document.createElement("aside");
+  status.className = "content-status";
+  status.setAttribute("role", "status");
+  const message = document.createElement("p");
+  message.textContent = `Some information could not be loaded (${failed.join(", ")}). Please try again.`;
+  const retry = document.createElement("button");
+  retry.type = "button";
+  retry.className = "academic-button academic-button--outline";
+  retry.textContent = "Reload page";
+  retry.addEventListener("click", () => window.location.reload());
+  status.append(message, retry);
+  main.prepend(status);
+  failed.forEach((resource) => {
+    const selector = resourceTargets[resource];
+    if (!selector) return;
+    document.querySelectorAll(selector).forEach((container) => {
+      const text = document.createElement(container.tagName === "UL" ? "li" : "p");
+      text.className = "academic-empty-state";
+      text.textContent = "This information is temporarily unavailable.";
+      container.replaceChildren(text);
+    });
+  });
+};
+
 const loadAcademicProfile = async () => {
-  const endpoints = [
-    "profile",
-    "research",
-    "education",
-    "updates",
-    "publications",
-    "projects",
-    "teaching",
-    "skills",
-    "achievements"
-  ];
-  const responses = await Promise.all(endpoints.map((endpoint) => fetch(`data/${endpoint}.json`)));
-  const failedResponse = responses.find((response) => !response.ok);
-
-  if (failedResponse) {
-    throw new Error(`Academic profile request failed: ${failedResponse.url} (${failedResponse.status}).`);
-  }
-
-  const [profile, research, education, updates, publications, projects, teaching, skills, achievements] = await Promise.all(
-    responses.map((response) => response.json())
-  );
-  setProfile(profile);
+  const endpoints = ["profile", ...Object.keys(resourceTargets).filter((key) => document.querySelector(resourceTargets[key]))];
+  const failed = [];
+  const entries = await Promise.all(endpoints.map(async (endpoint) => {
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 10_000);
+    try {
+      const response = await fetch(`data/${endpoint}.json`, { signal: controller.signal });
+      if (!response.ok) throw new Error(`Request failed (${response.status}).`);
+      const data = await response.json();
+      const valid = endpoint === "profile"
+        ? data && typeof data === "object" && !Array.isArray(data) && typeof data.name === "string"
+        : Array.isArray(data) && data.every((item) => item && typeof item === "object" && !Array.isArray(item));
+      if (!valid) throw new Error("Unexpected content format.");
+      return [endpoint, data];
+    } catch (error) {
+      failed.push(endpoint);
+      console.error(`Could not load ${endpoint}.`, error);
+      return [endpoint, undefined];
+    } finally {
+      window.clearTimeout(timeout);
+    }
+  }));
+  const { profile, research, education, updates, publications, projects, teaching, skills, achievements } = Object.fromEntries(entries);
+  if (profile) setProfile(profile);
 
   const researchVisuals = [
     `<path class="research-illustration__chip-side" d="M108 108h104l-8 10h-88z"/><rect class="research-illustration__chip" x="108" y="39" width="104" height="72" rx="12"/><path class="research-illustration__trace" d="M126 25v14m22-14v14m24-14v14m22-14v14m-68 72v14m22-14v14m24-14v14m22-14v14M94 55h14m-14 20h14m-14 20h14m104-40h14m-14 20h14m-14 20h14"/><path class="research-illustration__detail" d="M135 62h50m-50 13h34m-34 13h42"/>`,
@@ -533,10 +661,11 @@ const loadAcademicProfile = async () => {
 
   renderList(
     "[data-about-list]",
-    profile.about,
+    profile?.about,
     (paragraph) => `<p>${escapeHtml(paragraph)}</p>`
   );
   setupNewsCarousel(updates);
+  renderList("[data-research-titles]", research, (item) => `<li>${escapeHtml(item.title)}</li>`);
   renderList(
     "[data-research-list]",
     research,
@@ -602,7 +731,7 @@ const loadAcademicProfile = async () => {
     }
   );
   const cvEducation = document.body.classList.contains("cv-site")
-    ? education.filter((item) => /^(PhD|MTech|MCA|BSc)\b/i.test(item.degree || ""))
+    ? education?.filter((item) => /^(PhD|MTech|MCA|BSc)\b/i.test(item.degree || ""))
     : education;
 
   renderList(
@@ -611,7 +740,7 @@ const loadAcademicProfile = async () => {
     (item) => `
       <article class="education-entry">
         <div class="education-entry__identity">
-          ${item.institutionLogo ? `<img src="${escapeHtml(item.institutionLogo)}" alt="" loading="lazy" decoding="async" />` : ""}
+          ${safeAssetPath(item.institutionLogo) ? `<img src="${escapeHtml(item.institutionLogo)}" alt="" loading="${document.body.classList.contains("cv-site") ? "eager" : "lazy"}" decoding="async" />` : ""}
           <span class="education-entry__period">${escapeHtml(item.period || "")}</span>
         </div>
         <div class="education-entry__institution">
@@ -626,24 +755,33 @@ const loadAcademicProfile = async () => {
     `
   );
 
-  publicationItems = Array.isArray(publications) ? publications : [];
-  renderPublications();
-
-  renderRecords(
-    "[data-projects-list]",
-    projects,
-    (item) => `
-      <article class="academic-record academic-record--project">
+  if (publications) {
+    publicationItems = publications;
+    renderPublications();
+    const selected = [...publications]
+      .filter((item) => !item.status || /^accepted$|^published$/i.test(item.status))
+      .sort((a, b) => (Number.parseInt(b.year, 10) || 0) - (Number.parseInt(a.year, 10) || 0))
+      .slice(0, 3);
+    renderRecords("[data-selected-publications]", selected, (item) => `
+      <article class="academic-record">
+        <div class="academic-record__meta">
+          <span class="academic-record__year">${escapeHtml(item.year || "")}</span>
+          ${item.status ? `<span class="academic-record__status">${escapeHtml(item.status)}</span>` : ""}
+        </div>
         <div>
-          ${item.stack ? `<p class="academic-record__venue">${escapeHtml(item.stack)}</p>` : ""}
-          <h3>${escapeHtml(item.title || "Untitled project")}</h3>
-          ${item.description ? `<p>${escapeHtml(item.description)}</p>` : ""}
-          <div class="academic-record__links">${externalLink(item.url, "Project details")}</div>
+          <h3>${escapeHtml(item.title || "Publication")}</h3>
+          ${item.authors ? `<p>${escapeHtml(item.authors)}</p>` : ""}
+          ${item.venue ? `<p class="academic-record__venue">${escapeHtml(item.venue)}</p>` : ""}
+          <div class="academic-record__links">${externalLink(item.url, "Publication")}${externalLink(item.doi, "DOI")}${publicationPdfLink(item.pdf)}</div>
         </div>
       </article>
-    `,
-    "No projects are listed yet."
-  );
+    `, "Publications will be added here.");
+  }
+
+  if (Array.isArray(projects)) {
+    projectItems = projects;
+    renderProjects();
+  }
 
   renderRecords(
     "[data-teaching-list]",
@@ -679,6 +817,14 @@ const loadAcademicProfile = async () => {
 
   renderAchievements(achievements);
   setupAchievementGalleryAutoScroll();
+  if (failed.length) showContentError(failed);
+  if (printButton) {
+    if (!failed.length) {
+      await Promise.all([...document.querySelectorAll(".cv-page img")].map((image) => image.decode().catch(() => {})));
+    }
+    printButton.disabled = failed.length > 0;
+  }
+  return { publications, projects };
 };
 
 const renderAchievements = (achievements) => {
@@ -686,12 +832,7 @@ const renderAchievements = (achievements) => {
   if (!gallery || !Array.isArray(achievements)) return;
 
   if (!achievements.length) {
-    gallery.innerHTML = `
-      <p class="academic-empty-state">
-        No achievements are listed yet. Add entries to <code>backend/data/achievements.json</code>
-        and put their photos in <code>frontend/assets/</code>.
-      </p>
-    `;
+    gallery.innerHTML = `<p class="academic-empty-state">Photos and achievements will be added here.</p>`;
     return;
   }
 
@@ -719,7 +860,7 @@ const renderAchievements = (achievements) => {
           return `
             <article class="achievement-gallery__item">
               <button class="achievement-gallery__button" type="button" data-achievement-index="${index}" data-achievement="${escapeHtml(achievement)}">
-                <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.alt || item.title)}" loading="lazy" />
+                <img src="${escapeHtml(safeAssetPath(item.image) ? item.image : "")}" alt="${escapeHtml(item.alt || item.title)}" loading="lazy" />
                 <span class="achievement-gallery__caption">
                   ${item.date ? `<span class="achievement-gallery__date">${escapeHtml(item.date)}</span>` : ""}
                   <strong>${escapeHtml(item.title || "Achievement")}</strong>
@@ -755,6 +896,7 @@ const renderAchievements = (achievements) => {
   });
 };
 
-loadAcademicProfile().catch((error) => {
+window.academicDataReady = loadAcademicProfile().catch((error) => {
   console.error("Could not load the academic profile data.", error);
+  showContentError(["page content"]);
 });

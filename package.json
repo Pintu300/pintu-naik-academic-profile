@@ -6,10 +6,18 @@
   "scripts": {
     "start": "node backend/server.js",
     "dev": "node backend/server.js",
-    "check": "node --check backend/server.js && node --check backend/server.test.js && node --check frontend/script.js && node --check frontend/analytics.js && node --check frontend/visitor-stats.js && node --check frontend/admin.js && node --check cloudflare/visitor-stats/worker.mjs",
-    "test": "node --test backend/server.test.js"
+    "check": "node scripts/check.js",
+    "test": "node --test backend/*.test.js frontend/*.test.js scripts/*.test.js",
+    "build": "node scripts/build-static.js",
+    "test:browser": "node scripts/browser-check.js",
+    "images": "node scripts/optimize-images.js",
+    "audit:public": "node scripts/audit-public.js"
   },
   "engines": {
     "node": ">=18"
+  },
+  "devDependencies": {
+    "sharp": "^0.35.5",
+    "ws": "^8.22.2"
   }
 }

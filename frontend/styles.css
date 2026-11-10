@@ -17,6 +17,10 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -912,12 +916,11 @@ a {
   align-items: center;
   flex-wrap: wrap;
   gap: 0.8rem;
-  position: sticky;
-  bottom: 0;
+  position: static;
   border-top: 1px solid var(--line);
   background: rgba(247, 246, 242, 0.92);
   padding: 1rem 0;
-  backdrop-filter: blur(12px);
+  backdrop-filter: none;
 }
 
 .editor-status {
@@ -1220,7 +1223,7 @@ body.cv-site {
   border-radius: 18px;
   background:
     linear-gradient(90deg, rgba(251, 250, 255, 0.98) 0%, rgba(245, 248, 255, 0.94) 42%, rgba(239, 249, 248, 0.62) 72%, rgba(239, 249, 248, 0.34) 100%),
-    var(--page-hero-image, url("assets/research-graph-computing.jpg")),
+    var(--page-hero-image, url("assets/optimized/research-graph-computing-960.webp")),
     radial-gradient(ellipse at 92% 10%, rgba(101, 84, 192, 0.13), transparent 34%),
     linear-gradient(120deg, #fbfaff 0%, #eef4ff 56%, #f0fbfa 100%);
   background-repeat: no-repeat;
@@ -2482,7 +2485,7 @@ body.cv-site {
   inset: 0;
   background-image:
     linear-gradient(90deg, rgba(248, 250, 255, 0.99) 0%, rgba(243, 248, 252, 0.96) 38%, rgba(241, 249, 249, 0.72) 70%, rgba(241, 249, 249, 0.48) 100%),
-    var(--page-hero-image, url("assets/research-graph-computing.jpg"));
+    var(--page-hero-image, url("assets/optimized/research-graph-computing-960.webp"));
   background-repeat: no-repeat;
   background-position: center, right center;
   background-size: cover, auto 145%;
@@ -3061,34 +3064,6 @@ body.cv-site {
   }
 }
 
-.cv-site .cv-page {
-  max-width: 850px;
-  padding-top: 2rem;
-}
-
-.cv-site .cv-header {
-  border-bottom: 2px solid var(--academic-ink);
-  padding-bottom: 1.4rem;
-}
-
-.cv-site .cv-header::before {
-  position: absolute;
-  z-index: -1;
-  inset: -1.5rem 0 0;
-  background-image:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.98) 0%, rgba(249, 251, 255, 0.94) 40%, rgba(243, 249, 249, 0.64) 72%, rgba(243, 249, 249, 0.35) 100%),
-    var(--page-hero-image, url("assets/profile-cv.jpg"));
-  background-repeat: no-repeat;
-  background-position: center, right center;
-  background-size: cover, auto 155%;
-  content: "";
-}
-
-.cv-back-link {
-  display: inline-block;
-  margin-bottom: 1.5rem;
-}
-
 .cv-heading-row {
   display: flex;
   align-items: end;
@@ -3096,37 +3071,13 @@ body.cv-site {
   gap: 2rem;
 }
 
-.cv-site .cv-header h1 {
-  margin-top: 0;
-  color: var(--academic-ink);
-}
-
 .cv-site .cv-header p {
   color: var(--academic-muted);
-}
-
-.cv-contact {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.65rem;
-  margin-top: 1rem !important;
 }
 
 .cv-contact a,
 .cv-footer a {
   color: var(--academic-ink);
-  font-weight: 600;
-}
-
-.cv-site .cv-section {
-  border-bottom-color: var(--academic-line);
-  padding: 1.5rem 0;
-}
-
-.cv-site .cv-section h2 {
-  color: var(--academic-ink);
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 1.35rem;
   font-weight: 600;
 }
 
@@ -3162,23 +3113,8 @@ body.cv-site {
   font-size: 1.02rem;
 }
 
-.cv-skills {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
-}
-
 .cv-skills h3 {
   margin-top: 0 !important;
-}
-
-.cv-footer {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  padding-top: 1rem;
-  color: var(--academic-muted);
-  font-size: 0.82rem;
 }
 
 @media (max-width: 920px) {
@@ -3390,40 +3326,6 @@ body.cv-site {
   }
 }
 
-@media print {
-  body.cv-site {
-    background: #fff;
-    font-size: 10pt;
-  }
-
-  .cv-site .cv-page {
-    width: 100%;
-    max-width: none;
-    padding: 0;
-  }
-
-  .cv-back-link,
-  .cv-print {
-    display: none;
-  }
-
-  .cv-site .cv-header::before {
-    display: none;
-  }
-
-  .cv-site .cv-section {
-    break-inside: avoid;
-  }
-
-  .cv-site .cv-header h1 {
-    font-size: 28pt;
-  }
-
-  .cv-site .cv-section h2 {
-    font-size: 13pt;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -3499,12 +3401,19 @@ body.cv-site {
 }
 
 .cv-site .cv-header::before {
+  position: absolute;
+  z-index: -1;
+  content: "";
+  background-repeat: no-repeat;
+  background-position: center, right center;
+  background-size: cover, auto 155%;
   inset: -1rem -1.5rem 0;
   border-radius: 1rem;
   background-image: linear-gradient(115deg, #f8fafc, #edf5f5 72%, #f8f6f1);
 }
 
 .cv-back-link {
+  display: inline-block;
   margin-bottom: 1.75rem;
   font-size: 0.9rem;
 }
@@ -3521,6 +3430,7 @@ body.cv-site {
 }
 
 .cv-site .cv-header h1 {
+  color: var(--academic-ink);
   margin: 0.3rem 0 0.65rem;
   font-size: clamp(2.6rem, 6vw, 4rem);
   line-height: 1.05;
@@ -3560,6 +3470,8 @@ body.cv-site {
 }
 
 .cv-contact {
+  display: flex;
+  flex-wrap: wrap;
   gap: 0.55rem;
   margin-top: 1.15rem !important;
 }
@@ -3585,6 +3497,7 @@ body.cv-site {
 }
 
 .cv-site .cv-section {
+  border-bottom-color: var(--academic-line);
   display: grid;
   grid-template-columns: minmax(145px, 0.32fr) minmax(0, 1fr);
   align-items: start;
@@ -3712,6 +3625,7 @@ body.cv-site {
 }
 
 .cv-skills {
+  display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.7rem;
 }
@@ -3736,6 +3650,11 @@ body.cv-site {
 }
 
 .cv-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--academic-muted);
+  font-size: 0.82rem;
   border-top: 1px solid var(--academic-line);
   padding-top: 1.25rem;
 }
@@ -3796,12 +3715,71 @@ body.cv-site {
   }
 }
 
+
+
+.login-page {
+  max-width: 480px;
+}
+
+.login-page .editor-form {
+  gap: 1.25rem;
+}
+
+.login-page button[type="submit"] {
+  width: 100%;
+}
+
+/* Loading feedback and form editing */
+.content-status {
+  width: min(100% - 2rem, 1000px);
+  margin: 1.5rem auto;
+  padding: 1rem 1.25rem;
+  border: 1px solid #d6ab54;
+  border-radius: 8px;
+  background: #fff9eb;
+  color: #533d13;
+}
+.content-status p { margin: 0 0 0.75rem; }
+button:disabled { cursor: not-allowed; opacity: 0.6; }
+:focus-visible { outline: 3px solid #087f8c; outline-offset: 3px; }
+[data-editor-collections] { display: grid; gap: 1.5rem; }
+.editor-entry { margin: 1rem 0; border: 1px solid var(--line); border-radius: 6px; }
+.editor-entry > summary { padding: 1rem; font-weight: 700; cursor: pointer; overflow-wrap: anywhere; }
+.editor-entry fieldset { margin: 0; padding: 0 1rem 1rem; border: 0; min-width: 0; }
+.editor-entry legend { padding-top: 0.5rem; color: var(--muted); }
+.editor-form select { width: 100%; border: 1px solid var(--line); border-radius: var(--radius); padding: 0.75rem; font: inherit; background: #fff; }
+.editor-entry__actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+
+.editor-fields { display: grid; gap: 1.5rem; min-width: 0; border: 0; margin: 0; padding: 0; }
+
+/* Avoid covering form controls with the action bar on narrow screens. */
+.editor-page :is(button, input, select, textarea, summary) {
+  scroll-margin-block: 7rem;
+}
+@media (max-width: 700px) {
+  .editor-actions {
+    position: static;
+    backdrop-filter: none;
+  }
+}
+
+@media (max-width: 540px) {
+  .profile-hero::before {
+    background-image:
+      linear-gradient(180deg, rgba(250, 251, 255, 0.97), rgba(244, 249, 251, 0.92)),
+      var(--page-hero-image);
+    background-size: cover;
+    background-position: center;
+  }
+}
+
 @media print {
   @page {
     margin: 1cm;
   }
 
   body.cv-site {
+    background: #fff;
     color: #172033;
     font-size: 9pt;
   }
@@ -3813,6 +3791,7 @@ body.cv-site {
   }
 
   .cv-site .cv-page {
+    width: 100%;
     max-width: none;
     padding: 0;
   }
@@ -3901,5 +3880,123 @@ body.cv-site {
 
   .cv-site .cv-footer {
     border-top: 1px solid #8792a2;
+  }
+
+  .cv-site [data-reveal],
+  .cv-site .cv-section {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .cv-site * {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .cv-site .cv-section {
+    grid-template-columns: 115px minmax(0, 1fr);
+  }
+  .cv-site .cv-section h3 {
+    font-size: 9.5pt;
+    line-height: 1.35;
+  }
+  .cv-site .cv-section p,
+  .cv-site .cv-section li {
+    font-size: 9pt;
+  }
+  .cv-site .cv-section .academic-record {
+    grid-template-columns: 52px minmax(0, 1fr);
+    gap: 0.5rem;
+    padding: 0.35rem 0.45rem;
+    break-inside: avoid;
+  }
+  .cv-site .cv-section .academic-record h3 {
+    font-size: 9.5pt;
+    line-height: 1.35;
+  }
+  .cv-site .cv-section .academic-record p {
+    font-size: 9pt;
+    line-height: 1.4;
+  }
+  .cv-site .academic-record-list {
+    gap: 0.35rem;
+  }
+  .cv-site .academic-record__year {
+    font-size: 8pt;
+  }
+  .cv-site .academic-record__status {
+    padding: 0.1rem 0.25rem;
+    font-size: 6.5pt;
+  }
+  .cv-site .cv-section .cv-skills h3,
+  .cv-site .cv-section .cv-skills p {
+    font-size: 8.5pt;
+    line-height: 1.4;
+  }
+  .cv-site .cv-footer {
+    break-before: avoid;
+    break-inside: avoid;
+    padding-top: 0.4rem;
+    font-size: 8pt;
+  }
+}
+
+/* Academic catalogue tools */
+.catalog-controls {
+  min-width: 0;
+  margin: 0 0 2rem;
+  border: 1px solid var(--academic-line);
+  border-radius: 12px;
+  background: #fff;
+  padding: 1.25rem;
+}
+.catalog-filters { display: grid; grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr)); gap: 0.85rem; }
+.catalog-filters--projects { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
+.catalog-controls label, .citation-dialog label { display: grid; min-width: 0; gap: 0.4rem; color: var(--academic-ink); font-size: 0.86rem; font-weight: 650; }
+.catalog-controls input, .catalog-controls select, .citation-dialog select, .citation-dialog textarea {
+  width: 100%; min-width: 0; border: 1px solid #c4cfe2; border-radius: 6px; background: #fff;
+  color: var(--academic-ink); padding: 0.7rem; font: inherit;
+}
+.catalog-actions { display: flex; flex-wrap: wrap; gap: 0.65rem; margin-top: 1rem; }
+.catalog-controls p { margin: 1rem 0 0; color: var(--academic-muted); font-size: 0.88rem; }
+.record-action { display: inline-flex; border: 1px solid var(--academic-line); border-radius: 5px; background: #f5f8ff; padding: 0.25rem 0.6rem; color: var(--academic-blue); font: inherit; font-size: 0.84rem; font-weight: 650; cursor: pointer; }
+.publication-abstract { margin-top: 0.75rem; }
+.publication-abstract summary { color: var(--academic-blue); font-weight: 650; cursor: pointer; }
+.citation-dialog { width: min(700px, calc(100% - 2rem)); max-height: 85vh; overflow: auto; border: 1px solid var(--academic-line); border-radius: 14px; background: #fff; color: var(--academic-ink); padding: 1.5rem; }
+.citation-dialog:not([open]) { display: none; }
+.citation-dialog::backdrop { background: rgba(15, 27, 40, 0.7); }
+.citation-dialog__heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.citation-dialog__heading h2 { margin: 0; font-family: Georgia, serif; }
+.citation-dialog__heading button { width: 40px; height: 40px; flex-shrink: 0; border: 1px solid var(--academic-line); border-radius: 6px; background: #fff; color: var(--academic-ink); font-size: 1.5rem; cursor: pointer; }
+.citation-dialog > label { margin-top: 1rem; }
+.citation-dialog textarea { font-family: ui-monospace, monospace; font-weight: 400; resize: vertical; }
+.catalog-hint { color: var(--academic-muted); font-size: 0.84rem; }
+[data-share-field] { margin-top: 1rem; }
+@media (max-width: 700px) {
+  .catalog-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .catalog-search { grid-column: 1 / -1; }
+}
+@media (max-width: 420px) {
+  .catalog-filters { grid-template-columns: 1fr; }
+  .catalog-actions > button { max-width: 100%; white-space: normal; text-align: left; }
+  .citation-dialog { padding: 1rem; }
+}
+@media print {
+  .catalog-controls, .catalog-actions, .record-action, .citation-dialog, .publication-abstract { display: none !important; }
+}
+
+.editor-section-nav { display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 0.8rem; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+.editor-section-nav a { padding: 0.35rem 0.6rem; border-radius: 5px; color: var(--accent-strong); font-size: 0.85rem; font-weight: 650; }
+.editor-section-nav a:hover { background: #edf5f5; }
+.editor-backup { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; }
+.editor-backup p { margin: 0; color: var(--muted); font-size: 0.85rem; }
+.editor-collection-tools { display: flex; flex-wrap: wrap; align-items: end; gap: 0.6rem; margin-top: 0.75rem; }
+.editor-collection-tools > label { flex: 1 1 240px; }
+.editor-collection-tools > button { flex: 0 0 auto; }
+.editor-page h2 { scroll-margin-top: 1rem; }
+
+/* Keep the CV header background inside the viewport when page margins narrow. */
+@media (max-width: 1028px) {
+  .cv-site .cv-header::before {
+    inset-inline: -0.5rem;
   }
 }

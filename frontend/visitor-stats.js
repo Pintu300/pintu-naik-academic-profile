@@ -5,12 +5,19 @@
   const endpoint = panel.dataset.endpoint.trim();
   if (!endpoint) return;
 
+  const startDate = panel.dataset.startDate || "2026-11-10";
+  const requestUrl = new URL(endpoint, window.location.href);
+  // A new reporting period must not reuse a response cached under the old URL.
+  requestUrl.searchParams.set("since", startDate);
+
   const total = panel.querySelector("[data-visitor-total]");
   const period = panel.querySelector("[data-visitor-period]");
   const status = panel.querySelector("[data-visitor-status]");
   const list = panel.querySelector("[data-visitor-list]");
   const updated = panel.querySelector("[data-visitor-updated]");
+  const retry = panel.querySelector("[data-visitor-retry]");
   const numberFormat = new Intl.NumberFormat();
+  let loading = false;
 
   const flagForCountry = (countryCode) => {
     if (!/^[A-Z]{2}$/.test(countryCode)) return "🌐";
@@ -42,8 +49,19 @@
   };
 
   const loadVisitorStats = async () => {
+    if (loading) return;
+    loading = true;
+    const restoreFocus = retry && document.activeElement === retry;
+    panel.setAttribute("aria-busy", "true");
+    status.hidden = false;
+    status.textContent = "Loading visitor statistics…";
+    if (retry) retry.disabled = true;
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 10_000);
     try {
-      const response = await fetch(endpoint, { headers: { Accept: "application/json" } });
+      const response = await fetch(requestUrl.href, {
+        signal: controller.signal, cache: "no-store", headers: { Accept: "application/json" }
+      });
       if (!response.ok) {
         throw new Error(`Visitor statistics request failed with status ${response.status}.`);
       }
@@ -55,6 +73,10 @@
         !Array.isArray(data.countries)
       ) {
         throw new Error("Visitor statistics response has an invalid format.");
+      }
+
+      if (data.startDate !== startDate) {
+        throw new Error("Visitor statistics do not match the configured reporting period.");
       }
 
       const countries = data.countries.filter(
@@ -83,12 +105,36 @@
           timeStyle: "short"
         }).format(updatedAt)}`;
       }
+      if (retry) {
+        retry.hidden = true;
+      }
     } catch (error) {
       console.error("Could not load visitor statistics.", error);
       status.hidden = false;
-      status.textContent = "Visitor statistics are temporarily unavailable. Please try again later.";
+      status.textContent = controller.signal.aborted
+        ? "Visitor statistics took too long to load. Please try again."
+        : "Visitor statistics are temporarily unavailable. Please try again.";
+      if (retry) retry.hidden = false;
+    } finally {
+      window.clearTimeout(timeout);
+      loading = false;
+      panel.setAttribute("aria-busy", "false");
+      if (retry) retry.disabled = false;
+      // Disabling a focused button can move focus to body. Restore it only
+      // if the visitor has not moved to another control while waiting.
+      if (restoreFocus && (document.activeElement === retry || document.activeElement === document.body)) {
+        if (retry.hidden) {
+          status.hidden = false;
+          if (!status.textContent) status.textContent = "Visitor statistics updated.";
+          status.tabIndex = -1;
+          status.focus();
+        } else {
+          retry.focus();
+        }
+      }
     }
   };
 
-  loadVisitorStats();
+  retry?.addEventListener("click", loadVisitorStats);
+  return loadVisitorStats();
 })();

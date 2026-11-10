@@ -2,16 +2,33 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.googletagmanager.com; script-src-attr 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' https://www.google-analytics.com https://*.google-analytics.com; connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://pintu-naik-visitor-stats.pintunaik300.workers.dev; object-src 'none'; base-uri 'none'; form-action 'self'" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="Research and software projects by Pintu Naik." />
-    <title>Projects | Pintu Naik</title>
+    <title>Pintu Naik | Projects</title>
     <link rel="stylesheet" href="styles.css" />
+    <!-- Site metadata -->
+    <link rel="canonical" href="https://pintu300.github.io/pintu-naik-academic-profile/projects.html" />
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Pintu Naik" />
+    <meta property="og:title" content="Pintu Naik | Projects" />
+    <meta property="og:description" content="Research and software projects by Pintu Naik." />
+    <meta property="og:url" content="https://pintu300.github.io/pintu-naik-academic-profile/projects.html" />
+    <meta property="og:image" content="https://pintu300.github.io/pintu-naik-academic-profile/assets/Photo.jpeg" />
+    <meta property="og:image:alt" content="Portrait of Pintu Naik" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Pintu Naik | Projects" />
+    <meta name="twitter:description" content="Research and software projects by Pintu Naik." />
+    <meta name="twitter:image" content="https://pintu300.github.io/pintu-naik-academic-profile/assets/Photo.jpeg" />
+    <!-- End site metadata -->
   </head>
-  <body class="academic-site" data-page-title="Projects" data-page-hero-image="assets/profile-projects.jpg">
+  <body class="academic-site" data-page-title="Projects" data-page-hero-image="assets/optimized/profile-projects-960.webp">
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="academic-header">
       <nav class="academic-nav" aria-label="Primary navigation">
-        <a class="academic-brand" href="index.html" aria-label="Pintu Naik, home"><img class="academic-brand__photo" data-profile-photo src="assets/Photo.jpeg" alt="" /><span><strong data-profile="name">Pintu Naik</strong><small data-profile="shortTitle">PhD Scholar · IIT Jammu</small></span></a>
+        <a class="academic-brand" href="index.html" aria-label="Pintu Naik, home"><img class="academic-brand__photo" data-profile-photo src="assets/optimized/Photo-96.webp" alt="" srcset="assets/optimized/Photo-96.webp 96w, assets/optimized/Photo-320.webp 320w, assets/optimized/Photo-640.webp 640w" sizes="40px" width="96" height="123" data-profile-source="assets/Photo.jpeg" /><span><strong data-profile="name">Pintu Naik</strong><small data-profile="shortTitle">PhD Scholar · IIT Jammu</small></span></a>
         <button class="academic-nav__toggle" type="button" aria-expanded="false" aria-controls="academic-menu" aria-label="Toggle navigation"><span></span><span></span><span></span></button>
         <div class="academic-nav__links" id="academic-menu">
           <a href="index.html">Home</a><a href="research.html">Research</a><a href="publications.html">Publications</a><a class="is-current" href="projects.html" aria-current="page">Projects</a><a href="teaching.html">Teaching</a><a href="achievements.html">Achievements</a><a href="education.html">Education</a><a href="cv.html">CV</a><a href="index.html#contact">Contact</a>
@@ -19,17 +36,29 @@
       </nav>
     </header>
     <main id="main">
+      <noscript><p class="content-status">Enable JavaScript to view the latest academic information.</p></noscript>
       <header class="academic-page-heading" data-reveal>
         <p class="academic-eyebrow">Research and software</p>
         <h1>Projects</h1>
         <p>Research projects, implementations, and software contributions.</p>
       </header>
       <section class="academic-page-content" data-reveal aria-label="Project list">
-        <div class="academic-record-list" data-projects-list aria-live="polite"><p class="academic-empty-state">Project details will be added here.</p></div>
+        <fieldset class="catalog-controls" data-project-controls disabled hidden>
+          <legend class="sr-only">Project search and filters</legend>
+          <div class="catalog-filters catalog-filters--projects">
+            <label>Search projects<input type="search" data-project-query placeholder="Title, contribution, or technology" maxlength="200" aria-controls="project-results" /></label>
+            <label>Technology<select data-project-technology aria-controls="project-results"><option value="">All technologies</option></select></label>
+          </div>
+          <div class="catalog-actions"><button class="publication-sort" type="button" data-project-reset>Reset filters</button></div>
+          <p data-project-count role="status" aria-live="polite"></p>
+        </fieldset>
+        <div id="project-results" class="academic-record-list" data-projects-list><p class="academic-empty-state">Project details will be added here.</p></div>
       </section>
     </main>
     <footer class="academic-footer"><p>© <span data-year></span> <span data-profile="name">Pintu Naik</span></p><a href="index.html">Home</a></footer>
     <script src="analytics.js"></script>
+    <script src="catalog.js"></script>
     <script src="script.js"></script>
+    <script src="catalog-ui.js"></script>
   </body>
 </html>

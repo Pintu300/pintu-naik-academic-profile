@@ -2,17 +2,34 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.googletagmanager.com; script-src-attr 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' https://www.google-analytics.com https://*.google-analytics.com; connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://pintu-naik-visitor-stats.pintunaik300.workers.dev; object-src 'none'; base-uri 'none'; form-action 'self'" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Research interests of Pintu Naik, PhD Scholar at IIT Jammu." />
-    <title>Research | Pintu Naik</title>
+    <meta name="description" content="Research interests and current directions of Pintu Naik." />
+    <title>Pintu Naik | Research</title>
     <link rel="stylesheet" href="styles.css" />
+    <!-- Site metadata -->
+    <link rel="canonical" href="https://pintu300.github.io/pintu-naik-academic-profile/research.html" />
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Pintu Naik" />
+    <meta property="og:title" content="Pintu Naik | Research" />
+    <meta property="og:description" content="Research interests and current directions of Pintu Naik." />
+    <meta property="og:url" content="https://pintu300.github.io/pintu-naik-academic-profile/research.html" />
+    <meta property="og:image" content="https://pintu300.github.io/pintu-naik-academic-profile/assets/Photo.jpeg" />
+    <meta property="og:image:alt" content="Portrait of Pintu Naik" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Pintu Naik | Research" />
+    <meta name="twitter:description" content="Research interests and current directions of Pintu Naik." />
+    <meta name="twitter:image" content="https://pintu300.github.io/pintu-naik-academic-profile/assets/Photo.jpeg" />
+    <!-- End site metadata -->
   </head>
-  <body class="academic-site" data-page-title="Research" data-page-hero-image="assets/research-graph-computing.jpg">
+  <body class="academic-site" data-page-title="Research" data-page-hero-image="assets/optimized/research-graph-computing-960.webp">
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="academic-header">
       <nav class="academic-nav" aria-label="Primary navigation">
         <a class="academic-brand" href="index.html" aria-label="Pintu Naik, home">
-          <img class="academic-brand__photo" data-profile-photo src="assets/Photo.jpeg" alt="" />
+          <img class="academic-brand__photo" data-profile-photo src="assets/optimized/Photo-96.webp" alt="" srcset="assets/optimized/Photo-96.webp 96w, assets/optimized/Photo-320.webp 320w, assets/optimized/Photo-640.webp 640w" sizes="40px" width="96" height="123" data-profile-source="assets/Photo.jpeg" />
           <span><strong data-profile="name">Pintu Naik</strong><small data-profile="shortTitle">PhD Scholar · IIT Jammu</small></span>
         </a>
         <button class="academic-nav__toggle" type="button" aria-expanded="false" aria-controls="academic-menu" aria-label="Toggle navigation"><span></span><span></span><span></span></button>
@@ -25,6 +42,7 @@
       </nav>
     </header>
     <main id="main">
+      <noscript><p class="content-status">Enable JavaScript to view the latest academic information.</p></noscript>
       <header class="academic-page-heading" data-reveal>
         <p class="academic-eyebrow">Research</p>
         <h1>Research interests</h1>
@@ -32,14 +50,13 @@
       </header>
       <section class="academic-page-content" data-reveal aria-label="Research areas">
         <div class="academic-card-grid" data-research-list>
-          <article class="academic-card"><span>01</span><h2>Parallel and Distributed Algorithms</h2><p>Design and analysis of algorithms for distributed environments, with attention to scalability, communication cost, correctness, and performance.</p></article>
-          <article class="academic-card"><span>02</span><h2>Scalable Computing Systems</h2><p>Scalability and efficient computation in parallel and distributed environments.</p></article>
-          <article class="academic-card"><span>03</span><h2>Algorithm Engineering</h2><p>Bridging algorithm design and analysis with practical implementation.</p></article>
+          <p class="academic-empty-state">Loading research interests…</p>
         </div>
       </section>
     </main>
     <footer class="academic-footer"><p>© <span data-year></span> <span data-profile="name">Pintu Naik</span></p><a href="index.html">Home</a></footer>
     <script src="analytics.js"></script>
+    <script src="catalog.js"></script>
     <script src="script.js"></script>
   </body>
 </html>

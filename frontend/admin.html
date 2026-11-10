@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="description" content="Password-protected website content editor." />
+    <title>Admin Editor | Personal Website</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="editor-page" aria-labelledby="editor-title">
+      <header class="editor-header">
+        <a class="text-link" href="index.html">Back to website</a>
+        <h1 id="editor-title">Admin Editor</h1>
+        <p>
+          This page is password protected. Use it to update visible website
+          details without editing JSON in the terminal.
+        </p>
+      </header>
+
+      <form class="editor-form" data-editor-form>
+        <section class="editor-card" aria-labelledby="profile-heading">
+          <h2 id="profile-heading">Profile</h2>
+          <div class="field-grid">
+            <label>
+              Name
+              <input name="profile.name" type="text" required />
+            </label>
+            <label>
+              Title
+              <input name="profile.title" type="text" required />
+            </label>
+            <label>
+              Institution
+              <input name="profile.institution" type="text" required />
+            </label>
+            <label>
+              Department
+              <input name="profile.department" type="text" required />
+            </label>
+            <label>
+              Email
+              <input name="profile.email" type="email" required />
+            </label>
+            <label>
+              Profile Photo Path
+              <input name="profile.photo" type="text" placeholder="assets/profile-photo.jpg" />
+            </label>
+            <label>
+              Research Areas
+              <input name="profile.researchAreas" type="text" />
+            </label>
+            <label>
+              Focus
+              <input name="profile.focus" type="text" />
+            </label>
+          </div>
+          <label>
+            Summary
+            <textarea name="profile.summary" rows="5" required></textarea>
+          </label>
+          <label>
+            About Heading
+            <input name="profile.aboutHeading" type="text" />
+          </label>
+          <label>
+            Contact Heading
+            <input name="profile.contactHeading" type="text" />
+          </label>
+          <label>
+            Contact Text
+            <textarea name="profile.contactText" rows="4"></textarea>
+          </label>
+        </section>
+
+        <section class="editor-card" aria-labelledby="links-heading">
+          <h2 id="links-heading">Links</h2>
+          <div class="field-grid">
+            <label>
+              Department Page
+              <input name="profile.links.department" type="url" />
+            </label>
+            <label>
+              GitHub
+              <input name="profile.links.github" type="url" />
+            </label>
+            <label>
+              Google Scholar
+              <input name="profile.links.scholar" type="url" />
+            </label>
+            <label>
+              LinkedIn
+              <input name="profile.links.linkedin" type="url" />
+            </label>
+          </div>
+        </section>
+
+        <section class="editor-card" aria-labelledby="content-heading">
+          <h2 id="content-heading">Website Sections</h2>
+          <p>
+            These fields use JSON arrays. Keep the square brackets and double
+            quotes; edit the text inside the existing examples.
+          </p>
+          <label>
+            About Paragraphs
+            <textarea name="profile.about" rows="8" spellcheck="false"></textarea>
+          </label>
+          <label>
+            Research Interests
+            <textarea name="research" rows="12" spellcheck="false"></textarea>
+          </label>
+          <label>
+            Recent Updates
+            <p class="editor-help">Add news items as JSON objects with <code>date</code>, <code>title</code>, and <code>description</code>. These appear in the News section on the homepage.</p>
+            <textarea name="updates" rows="9" spellcheck="false"></textarea>
+          </label>
+          <label>
+            Publications
+            <textarea name="publications" rows="12" spellcheck="false"></textarea>
+          </label>
+          <label>
+            Projects
+            <textarea name="projects" rows="12" spellcheck="false"></textarea>
+          </label>
+          <label>
+            Achievements
+            <p class="editor-help">
+              Add one JSON object per photo. Use <code>category</code> to group it under Achievements,
+              Fun &amp; Memories, or Travel &amp; Outdoors. Put each image in
+              <code>frontend/assets/</code> and use a path such as <code>assets/award-photo.jpg</code>.
+              Supported fields: category, title, date, issuer, description, details, image, alt, and url.
+              Example: <code>{"category":"Achievements","title":"Best Poster Award","date":"2025","issuer":"Conference Name","image":"assets/poster-award.jpg","alt":"Award certificate"}</code>
+            </p>
+            <textarea name="achievements" rows="12" spellcheck="false"></textarea>
+          </label>
+          <label>
+            Education
+            <textarea name="education" rows="10" spellcheck="false"></textarea>
+          </label>
+          <label>
+            Skills
+            <textarea name="skills" rows="10" spellcheck="false"></textarea>
+          </label>
+          <label>
+            Teaching
+            <textarea name="teaching" rows="10" spellcheck="false"></textarea>
+          </label>
+        </section>
+
+        <div class="editor-actions">
+          <button class="button primary" type="submit">Save Details</button>
+          <a class="button neutral" href="index.html">View Website</a>
+          <p class="editor-status" data-editor-status role="status"></p>
+        </div>
+      </form>
+    </main>
+
+    <script src="admin.js"></script>
+  </body>
+</html>

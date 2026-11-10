@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Awards, certificates, and academic achievements of Pintu Naik." />
+    <title>Achievements | Pintu Naik</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="academic-site" data-page-title="Achievements" data-page-hero-image="assets/profile-achievements.jpg">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="academic-header">
+      <nav class="academic-nav" aria-label="Primary navigation">
+        <a class="academic-brand" href="index.html" aria-label="Pintu Naik, home">
+          <img class="academic-brand__photo" data-profile-photo src="assets/Photo.jpeg" alt="" />
+          <span><strong data-profile="name">Pintu Naik</strong><small data-profile="shortTitle">PhD Scholar · IIT Jammu</small></span>
+        </a>
+        <button class="academic-nav__toggle" type="button" aria-expanded="false" aria-controls="academic-menu" aria-label="Toggle navigation"><span></span><span></span><span></span></button>
+        <div class="academic-nav__links" id="academic-menu">
+          <a href="index.html">Home</a><a href="research.html">Research</a><a href="publications.html">Publications</a><a href="projects.html">Projects</a><a href="teaching.html">Teaching</a><a href="achievements.html" class="is-current" aria-current="page">Achievements</a><a href="education.html">Education</a><a href="cv.html">CV</a><a href="index.html#contact">Contact</a>
+        </div>
+      </nav>
+    </header>
+    <main id="main">
+      <header class="academic-page-heading" data-reveal>
+        <p class="academic-eyebrow">Academic milestones</p>
+        <h1>Achievements</h1>
+        <p>Academic achievements, university memories, and moments from my travels.</p>
+      </header>
+      <section class="academic-page-content" data-reveal aria-label="Achievement gallery">
+        <div class="achievement-gallery" data-achievements-list aria-live="polite">
+          <p class="academic-empty-state">
+            No achievements are listed yet. Add entries to <code>backend/data/achievements.json</code>
+            and put their photos in <code>frontend/assets/</code>.
+          </p>
+        </div>
+      </section>
+    </main>
+    <footer class="academic-footer"><p>© <span data-year></span> <span data-profile="name">Pintu Naik</span></p><a href="index.html">Home</a></footer>
+
+    <div class="achievement-detail" data-achievement-modal hidden>
+      <button class="achievement-detail__backdrop" type="button" data-achievement-close aria-label="Close achievement details"></button>
+      <section class="achievement-detail__panel" role="dialog" aria-modal="true" aria-labelledby="achievement-detail-title">
+        <button class="achievement-detail__close" type="button" data-achievement-close aria-label="Close">&times;</button>
+        <img data-achievement-detail-image src="" alt="" />
+        <div class="achievement-detail__body">
+          <p class="academic-eyebrow" data-achievement-detail-meta></p>
+          <h2 id="achievement-detail-title" data-achievement-detail-title></h2>
+          <p data-achievement-detail-description></p>
+          <p data-achievement-detail-extra></p>
+          <a class="academic-button academic-button--outline" data-achievement-detail-link href="" target="_blank" rel="noreferrer" hidden>More information</a>
+        </div>
+      </section>
+    </div>
+    <script src="analytics.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>

@@ -1,0 +1,18 @@
+[
+  {
+    "title": "Research",
+    "description": "Parallel algorithms, distributed algorithms, complexity analysis, reproducible experiments"
+  },
+  {
+    "title": "Programming",
+    "description": "Python, C++, JavaScript, TypeScript, SQL, Bash"
+  },
+  {
+    "title": "Systems",
+    "description": "Linux, Docker, Git, REST APIs, PostgreSQL, cloud deployment"
+  },
+  {
+    "title": "Tools",
+    "description": "LaTeX, GitHub, NumPy, pandas, performance profiling, reproducible workflows"
+  }
+]

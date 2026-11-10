@@ -1,0 +1,22 @@
+{
+  "name": "Pintu Naik",
+  "title": "PhD Scholar, Computer Science and Engineering",
+  "institution": "Indian Institute of Technology, Jammu",
+  "department": "CSE Department",
+  "email": "pintunaik300@gmail.com",
+  "photo": "assets/Photo.jpeg",
+  "summary": "My research focuses on parallel and distributed algorithms, with interests in scalability, communication efficiency, complexity analysis, and reliable computation.",
+  "researchAreas": "Parallel and distributed algorithms",
+  "focus": "Algorithm design and analysis",
+  "aboutHeading": "Research in algorithms and distributed computing",
+  "about": [
+    "I am Pintu Naik, a Ph.D. Research Scholar in the Department of Computer Science and Engineering at the Indian Institute of Technology Jammu (IIT Jammu), India.",
+    "My research focuses on High-Performance Computing (HPC), Parallel and Distributed Computing, GPU Computing, and Heterogeneous Computing Systems. I am particularly interested in developing scalable and efficient parallel algorithms, GPU-accelerated graph processing, and communication-aware workload scheduling. My recent work also explores high-performance nanopore basecalling on heterogeneous computing architectures, with an emphasis on performance optimization, scalability, and energy efficiency."
+  ],
+  "contactHeading": "Get in touch",
+  "contactText": "For academic correspondence or research discussions, please contact me by email.",
+  "links": {
+    "department": "https://www.iitjammu.ac.in/computer_science_engineering/phd-list",
+    "linkedin": "https://www.linkedin.com/in/pintu-naik/"
+  }
+}

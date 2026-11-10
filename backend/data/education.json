@@ -1,0 +1,45 @@
+[
+  {
+    "period": "2023 - Present",
+    "degree": "PhD, Computer Science and Engineering",
+    "institution": "Indian Institute of Technology Jammu",
+    "institutionLogo": "assets/institutes/iit-jammu.ico",
+    "details": "Supervisor: Prof. Sidharth Maheswari"
+  },
+  {
+    "period": "2020 - 2022",
+    "degree": "MTech, Computer Science and Engineering",
+    "institution": "Mizoram University",
+    "institutionLogo": "assets/institutes/mizoram-university.png",
+    "details": "Image Processing"
+  },
+  {
+    "period": "2016 - 2019",
+    "degree": "MCA, Computer Science and Application",
+    "institution": "Biju Patnaik University of Technology, Odisha",
+    "institutionLogo": "assets/institutes/bput.png",
+    "details": "Institute of Management and Information Technology (IMIT), Cuttack"
+  },
+  {
+    "period": "2013 - 2016",
+    "degree": "BSc, Science",
+    "institution": "Berhampur University, Odisha",
+    "institutionLogo": "assets/institutes/berhampur-university.png",
+    "details": "K.S.U.B. College, Bhanjanagar"
+  },
+  {
+    "period": "2011 - 2013",
+    "degree": "+2, Science",
+    "institution": "Rushikulya College, Surada"
+  },
+  {
+    "period": "2007 - 2011",
+    "degree": "Classes 8–10",
+    "institution": "Hadu Sarab High School, Badagada"
+  },
+  {
+    "period": "2001 - 2007",
+    "degree": "Classes 1–7",
+    "institution": "Government Upper Primary School, Nuagan"
+  }
+]

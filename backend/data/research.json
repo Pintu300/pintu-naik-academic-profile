@@ -1,0 +1,34 @@
+[
+  {
+    "title": "High-Performance Computing",
+    "description": "Design and optimization of high-performance algorithms and computing systems, focusing on parallel execution, scalability, computational efficiency, and performance optimization."
+  },
+  {
+    "title": "Parallel and Distributed Computing",
+    "description": "Development of scalable parallel and distributed algorithms, emphasizing workload distribution, communication efficiency, synchronization, and efficient resource utilization."
+  },
+  {
+    "title": "GPU Computing and Parallel Graph Algorithms",
+    "description": "Design and optimization of GPU-accelerated graph algorithms, with a focus on maximum-flow computation, efficient graph representations, CUDA programming, and memory-efficient parallel processing."
+  },
+  {
+    "title": "Heterogeneous Computing Systems",
+    "description": "Performance optimization across heterogeneous CPU–GPU and ARM–GPU architectures, focusing on workload partitioning, computational efficiency, and coordinated execution."
+  },
+  {
+    "title": "Resource Management and Workload Scheduling",
+    "description": "Development of communication-aware and performance-driven scheduling strategies for heterogeneous computing environments, emphasizing load balancing, resource utilization, and execution efficiency."
+  },
+  {
+    "title": "High-Performance Nanopore Basecalling",
+    "description": "Performance characterization and optimization of nanopore sequencing basecalling workflows using parallel processing, heterogeneous computing, and distributed workload scheduling."
+  },
+  {
+    "title": "Energy-Efficient Computing",
+    "description": "Analysis and optimization of execution time, power consumption, and energy efficiency in GPU-accelerated algorithms and heterogeneous computing systems."
+  },
+  {
+    "title": "Algorithm Engineering and Performance Analysis",
+    "description": "Bridging theoretical algorithm design with practical implementation through performance profiling, experimental evaluation, and architecture-aware optimization."
+  }
+]

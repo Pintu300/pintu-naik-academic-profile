@@ -4,28 +4,32 @@
     "degree": "PhD, Computer Science and Engineering",
     "institution": "Indian Institute of Technology Jammu",
     "institutionLogo": "assets/institutes/iit-jammu.ico",
-    "details": "Supervisor: Prof. Sidharth Maheswari"
+    "details": "Supervisor: Prof. Sidharth Maheswari",
+    "result": "First Class · CGPA: 7.00"
   },
   {
     "period": "2020 - 2022",
     "degree": "MTech, Computer Science and Engineering",
     "institution": "Mizoram University",
     "institutionLogo": "assets/institutes/mizoram-university.png",
-    "details": "Image Processing"
+    "details": "Image Processing",
+    "result": "First Class · CGPA: 7.63"
   },
   {
     "period": "2016 - 2019",
     "degree": "MCA, Computer Science and Application",
     "institution": "Biju Patnaik University of Technology, Odisha",
     "institutionLogo": "assets/institutes/bput.png",
-    "details": "Institute of Management and Information Technology (IMIT), Cuttack"
+    "details": "Institute of Management and Information Technology (IMIT), Cuttack",
+    "result": "First Class · CGPA: 8.30"
   },
   {
     "period": "2013 - 2016",
     "degree": "BSc, Science",
     "institution": "Berhampur University, Odisha",
     "institutionLogo": "assets/institutes/berhampur-university.png",
-    "details": "K.S.U.B. College, Bhanjanagar"
+    "details": "K.S.U.B. College, Bhanjanagar",
+    "result": "Second Class · 52.53%"
   },
   {
     "period": "2011 - 2013",

@@ -27,22 +27,25 @@
     <main class="cv-page" id="cv-main" aria-labelledby="cv-title">
       <header class="cv-header" data-reveal>
         <a class="text-link cv-back-link" href="index.html">← Back to academic profile</a>
-        <div class="cv-heading-row">
-          <div>
+        <div class="cv-identity">
+          <div class="cv-identity__copy">
             <p class="academic-eyebrow">Curriculum vitae</p>
             <h1 id="cv-title">Pintu Naik</h1>
-            <p>PhD Scholar, Computer Science and Engineering</p>
-            <p>Indian Institute of Technology, Jammu</p>
+            <p class="cv-role">PhD Research Scholar · Computer Science and Engineering</p>
+            <p class="cv-affiliation">Indian Institute of Technology Jammu</p>
+            <p class="cv-contact">
+              <a href="mailto:pintunaik300@gmail.com">pintunaik300@gmail.com</a>
+              <a href="https://www.linkedin.com/in/pintu-naik/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+              <a href="https://iitjammu.ac.in/department/cse/phdstudents" target="_blank" rel="noopener noreferrer">IIT Jammu profile</a>
+            </p>
           </div>
-          <button class="academic-button academic-button--primary cv-print" type="button" onclick="window.print()">
-            Print / Save as PDF
-          </button>
+          <div class="cv-identity__aside">
+            <img class="cv-portrait" src="assets/Photo.jpeg" alt="Portrait of Pintu Naik" />
+            <button class="academic-button academic-button--primary cv-print" type="button" onclick="window.print()">
+              Print / Save as PDF
+            </button>
+          </div>
         </div>
-        <p class="cv-contact">
-          <a href="mailto:pintunaik300@gmail.com">pintunaik300@gmail.com</a>
-          <span aria-hidden="true">·</span>
-          <a href="https://www.linkedin.com/in/pintu-naik/" target="_blank" rel="noreferrer">LinkedIn</a>
-        </p>
       </header>
 
       <section class="cv-section" aria-labelledby="cv-summary">
@@ -67,6 +70,7 @@
               <div class="education-entry__copy">
                 <h3>PhD, Computer Science and Engineering</h3>
                 <p class="education-entry__name">Indian Institute of Technology Jammu</p>
+                <p class="education-entry__result">First Class · CGPA: 7.00</p>
                 <p>Supervisor: Prof. Sidharth Maheswari</p>
               </div>
             </div>
@@ -78,8 +82,9 @@
             </div>
             <div class="education-entry__institution">
               <div class="education-entry__copy">
-                <h3>MTech, Computer Science</h3>
+                <h3>MTech, Computer Science and Engineering</h3>
                 <p class="education-entry__name">Mizoram University</p>
+                <p class="education-entry__result">First Class · CGPA: 7.63</p>
                 <p>Image Processing</p>
               </div>
             </div>
@@ -91,8 +96,9 @@
             </div>
             <div class="education-entry__institution">
               <div class="education-entry__copy">
-                <h3>MCA, Computer Science</h3>
+                <h3>MCA, Computer Science and Application</h3>
                 <p class="education-entry__name">Biju Patnaik University of Technology, Odisha</p>
+                <p class="education-entry__result">First Class · CGPA: 8.30</p>
               </div>
             </div>
           </article>
@@ -105,6 +111,7 @@
               <div class="education-entry__copy">
                 <h3>BSc, Science</h3>
                 <p class="education-entry__name">Berhampur University</p>
+                <p class="education-entry__result">Second Class · 52.53%</p>
               </div>
             </div>
           </article>
@@ -113,7 +120,7 @@
 
       <section class="cv-section" aria-labelledby="cv-interests">
         <h2 id="cv-interests">Research interests</h2>
-        <ul>
+        <ul class="cv-interest-list">
           <li>Parallel and distributed algorithms</li>
           <li>Scalable computing systems</li>
           <li>Algorithm engineering and analysis</li>
@@ -138,30 +145,51 @@
         </div>
       </section>
 
-      <section class="cv-section" aria-labelledby="cv-projects">
-        <h2 id="cv-projects">Selected projects</h2>
-        <div data-projects-list><p>No projects listed.</p></div>
-      </section>
-
       <section class="cv-section" aria-labelledby="cv-teaching">
         <h2 id="cv-teaching">Teaching and mentoring</h2>
-        <div data-teaching-list><p>No teaching or mentoring experience listed.</p></div>
+        <div data-teaching-list>
+          <article class="academic-record">
+            <span class="academic-record__year">2023</span>
+            <div>
+              <h3>Laboratory instruction</h3>
+              <p>Computer Architecture and Software Engineering.</p>
+            </div>
+          </article>
+          <article class="academic-record">
+            <span class="academic-record__year">2024–2025</span>
+            <div>
+              <h3>Laboratory instruction</h3>
+              <p>Principles of Programming Language and Software Engineering.</p>
+            </div>
+          </article>
+          <article class="academic-record">
+            <span class="academic-record__year">2026</span>
+            <div>
+              <h3>Laboratory instruction</h3>
+              <p>Data Structures and Algorithms and Computer Architecture.</p>
+            </div>
+          </article>
+        </div>
       </section>
 
       <section class="cv-section" aria-labelledby="cv-skills">
-        <h2 id="cv-skills">Technical strengths</h2>
+        <h2 id="cv-skills">Research and technical skills</h2>
         <div class="cv-skills" data-skills-list>
           <article>
+            <h3>Research</h3>
+            <p>Parallel algorithms, distributed algorithms, complexity analysis, reproducible experiments</p>
+          </article>
+          <article>
             <h3>Programming</h3>
-            <p>Python, C++, JavaScript, TypeScript, SQL, Bash</p>
+            <p>C, OpenMP, OpenMPI, CUDA,Python, C++, JavaScript, TypeScript, SQL, Bash</p>
           </article>
           <article>
-            <h3>Systems and tools</h3>
-            <p>Linux, Docker, Git, REST APIs, PostgreSQL, LaTeX</p>
+            <h3>Systems</h3>
+            <p>Linux, Docker, Git, REST APIs, PostgreSQL, cloud deployment</p>
           </article>
           <article>
-            <h3>Research practice</h3>
-            <p>Algorithm analysis, complexity analysis, benchmarking, reproducible workflows</p>
+            <h3>Tools</h3>
+            <p>LaTeX, GitHub, NumPy, pandas, performance profiling, reproducible workflows</p>
           </article>
         </div>
       </section>

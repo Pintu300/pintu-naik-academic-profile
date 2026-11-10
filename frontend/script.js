@@ -601,9 +601,13 @@ const loadAcademicProfile = async () => {
     `;
     }
   );
+  const cvEducation = document.body.classList.contains("cv-site")
+    ? education.filter((item) => /^(PhD|MTech|MCA|BSc)\b/i.test(item.degree || ""))
+    : education;
+
   renderList(
     "[data-education-list]",
-    education,
+    cvEducation,
     (item) => `
       <article class="education-entry">
         <div class="education-entry__identity">
@@ -614,6 +618,7 @@ const loadAcademicProfile = async () => {
           <div class="education-entry__copy">
             <h3>${escapeHtml(item.degree)}</h3>
             ${item.institution ? `<p class="education-entry__name">${escapeHtml(item.institution)}</p>` : ""}
+            ${item.result ? `<p class="education-entry__result">${escapeHtml(item.result)}</p>` : ""}
             ${item.details ? `<p>${escapeHtml(item.details)}</p>` : ""}
           </div>
         </div>
@@ -643,15 +648,21 @@ const loadAcademicProfile = async () => {
   renderRecords(
     "[data-teaching-list]",
     teaching,
-    (item) => `
+    (item) => {
+      const title = document.body.classList.contains("cv-site") && item.title === "Courses"
+        ? "Laboratory instruction"
+        : item.title || "Teaching or mentoring";
+
+      return `
       <article class="academic-record">
         <span class="academic-record__year">${escapeHtml(item.year || "")}</span>
         <div>
-          <h3>${escapeHtml(item.title || "Teaching or mentoring")}</h3>
+          <h3>${escapeHtml(title)}</h3>
           ${item.description ? `<p>${escapeHtml(item.description)}</p>` : ""}
         </div>
       </article>
-    `,
+    `;
+    },
     "No teaching or mentoring experience is listed yet."
   );
 

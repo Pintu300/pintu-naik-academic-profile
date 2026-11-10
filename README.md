@@ -141,21 +141,14 @@ In VS Code, open the file from the left sidebar and change the text directly.
 
 ### Visitor statistics by country (Google Analytics 4)
 
-The public pages include an optional Google Analytics 4 integration. To enable it:
-
-1. Create a Google Analytics account and a GA4 property for your public website.
-2. Create a **Web** data stream for the published site and copy its Measurement ID
-   (format: `G-XXXXXXXXXX`).
-3. Replace `G-XXXXXXXXXX` in `frontend/analytics.js` with your Measurement ID.
-4. Commit and push the change to publish it. The placeholder does not send analytics
-   requests until replaced with a valid ID.
-5. In Google Analytics, open **Reports → User → Demographic details** and select
+The public pages include a Google Analytics 4 Measurement ID in
+`frontend/analytics.js`. In Google Analytics, open **Reports → User → Demographic details** and select
    **Country** to see visitors by country. Reports can take up to 24–48 hours to
    populate.
 
 The Measurement ID is public configuration, not a password. Add an appropriate
 privacy notice to your site and follow applicable consent and privacy requirements
-for your visitors before enabling analytics.
+for your visitors.
 
 Review the profile, publication, project, education, and contact details in
 the JSON files before making the repository public.

@@ -1,7 +1,7 @@
 (() => {
-  const measurementId = "G-XXXXXXXXXX";
+  const measurementId = "G-1QX3DKVS0G";
 
-  if (!/^G-[A-Z0-9]+$/i.test(measurementId) || measurementId === "G-XXXXXXXXXX") {
+  if (!/^G-[A-Z0-9]+$/i.test(measurementId)) {
     return;
   }
 

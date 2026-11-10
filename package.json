@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node backend/server.js",
     "dev": "node backend/server.js",
-    "check": "node --check backend/server.js && node --check frontend/script.js && node --check frontend/analytics.js && node --check frontend/admin.js"
+    "check": "node --check backend/server.js && node --check frontend/script.js && node --check frontend/analytics.js && node --check frontend/visitor-stats.js && node --check frontend/admin.js && node --check cloudflare/visitor-stats/worker.mjs"
   },
   "engines": {
     "node": ">=18"

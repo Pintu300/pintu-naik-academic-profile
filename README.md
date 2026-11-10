@@ -139,16 +139,53 @@ backend/data/education.json
 
 In VS Code, open the file from the left sidebar and change the text directly.
 
-### Visitor statistics by country (Google Analytics 4)
+### Homepage visitor statistics by country
 
-The public pages include a Google Analytics 4 Measurement ID in
-`frontend/analytics.js`. In Google Analytics, open **Reports → User → Demographic details** and select
-   **Country** to see visitors by country. Reports can take up to 24–48 hours to
-   populate.
+The homepage visitor panel uses Google Analytics 4 for real unique-user totals
+and country breakdowns. Since GitHub Pages is static, a Cloudflare Worker reads
+GA4 securely; Google credentials are stored as Worker secrets and are never
+sent to visitors' browsers. The deployed endpoint is
+`https://pintu-naik-visitor-stats.pintunaik300.workers.dev/api/visitor-stats`.
+The panel displays zero until GA4 has collected reportable data.
 
-The Measurement ID is public configuration, not a password. Add an appropriate
-privacy notice to your site and follow applicable consent and privacy requirements
-for your visitors.
+1. In Google Cloud Console, enable the **Google Analytics Data API** and create
+   a service account. Keep its downloaded JSON key private.
+2. In Google Analytics, open **Admin → Property access management** and add the
+   service account email as a **Viewer**. Copy the numeric GA4 Property ID from
+   **Admin → Property details**.
+3. Install Wrangler if needed (`npm install --global wrangler`), then log in:
+
+   ```bash
+   npx wrangler login
+   ```
+
+4. Add the service-account private key as a Cloudflare Worker secret. The
+   service-account email and numeric GA4 Property ID are configured in
+   `wrangler.toml`:
+
+   ```bash
+   npx wrangler secret put GA_PRIVATE_KEY --config cloudflare/visitor-stats/wrangler.toml
+   ```
+
+   Copy the values from the private service-account JSON file when Wrangler
+   prompts. Never commit that JSON file or put its private key in frontend code.
+5. Deploy the Worker:
+
+   ```bash
+   npx wrangler deploy --config cloudflare/visitor-stats/wrangler.toml
+   ```
+
+   The command prints the Worker URL. Set the `data-endpoint` attribute on the
+   `[data-visitor-stats]` element in `frontend/index.html` to that URL followed
+   by `/api/visitor-stats`.
+6. Push the updated site to GitHub Pages. Once GA4 has collected data, the
+   homepage will show total unique visitors and visitor counts with country
+   flags. GA4 reports may take 24–48 hours to populate.
+
+The visitor totals start on `2020-01-01` by default; change `GA_REPORT_START_DATE` in
+`cloudflare/visitor-stats/wrangler.toml` to the date you want the total to begin.
+The public panel is read-only and cached briefly. Add an appropriate privacy
+notice to your site and follow applicable consent and privacy requirements.
 
 Review the profile, publication, project, education, and contact details in
 the JSON files before making the repository public.

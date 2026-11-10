@@ -1380,6 +1380,146 @@ body.cv-site {
   background: linear-gradient(105deg, #f0f3ff, #f1fbfb 75%, #f8f6ff);
 }
 
+.visitor-stats {
+  border-top: 1px solid #e5e9f2;
+  background:
+    radial-gradient(ellipse at 85% 15%, rgba(8, 127, 140, 0.08), transparent 35%),
+    linear-gradient(135deg, #f6f8ff, #f2f8f8);
+}
+
+.visitor-stats .academic-section__heading > p:last-child {
+  max-width: 620px;
+  margin: 0.85rem 0 0;
+  color: var(--academic-muted);
+}
+
+.visitor-stats__panel {
+  display: grid;
+  grid-template-columns: minmax(200px, 0.72fr) minmax(0, 1.6fr);
+  overflow: hidden;
+  border: 1px solid var(--academic-line);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 18px 44px rgba(23, 40, 62, 0.08);
+}
+
+.visitor-stats__summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 260px;
+  border-right: 1px solid var(--academic-line);
+  background: linear-gradient(145deg, #f5f4ff, #eff9f8);
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.visitor-stats__label,
+.visitor-stats__period {
+  color: var(--academic-muted);
+  font-size: 0.9rem;
+}
+
+.visitor-stats__total {
+  margin: 0.35rem 0 0.15rem;
+  color: var(--academic-ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(3rem, 6vw, 4.5rem);
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.visitor-stats__countries {
+  min-width: 0;
+  padding: clamp(1.3rem, 3vw, 2rem);
+}
+
+.visitor-stats__countries-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.visitor-stats__countries-heading h3 {
+  margin: 0;
+  color: var(--academic-ink);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.visitor-stats__countries-heading > span {
+  color: var(--academic-muted);
+  font-size: 0.78rem;
+}
+
+.visitor-stats__status {
+  margin: 1.5rem 0;
+  color: var(--academic-muted);
+  font-size: 0.9rem;
+}
+
+.visitor-stats__list {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.visitor-stats__list[hidden] {
+  display: none;
+}
+
+.visitor-stats__country {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.7rem;
+  min-height: 50px;
+  border-bottom: 1px solid #edf0f5;
+}
+
+.visitor-stats__country:last-child {
+  border-bottom: 0;
+}
+
+.visitor-stats__flag {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.visitor-stats__country-name {
+  overflow: hidden;
+  color: var(--academic-ink);
+  font-size: 0.9rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.visitor-stats__country-count {
+  color: var(--academic-ink);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.visitor-stats__updated {
+  grid-column: 1 / -1;
+  margin: 0;
+  border-top: 1px solid var(--academic-line);
+  padding: 0.8rem 1.25rem;
+  color: var(--academic-muted);
+  font-size: 0.76rem;
+  text-align: right;
+}
+
+.visitor-stats__updated:empty {
+  display: none;
+}
+
 .academic-about {
   display: grid;
   grid-template-columns: minmax(220px, 0.75fr) minmax(0, 1.3fr);
@@ -3081,9 +3221,20 @@ body.cv-site {
   }
 
   .academic-about,
-  .academic-contact__inner {
+  .academic-contact__inner,
+  .visitor-stats__panel {
     grid-template-columns: 1fr;
     gap: 1.5rem;
+  }
+
+  .visitor-stats__panel {
+    gap: 0;
+  }
+
+  .visitor-stats__summary {
+    min-height: 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--academic-line);
   }
 
   .academic-news__heading {

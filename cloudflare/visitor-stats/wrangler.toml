@@ -1,0 +1,8 @@
+name = "pintu-naik-visitor-stats"
+main = "worker.mjs"
+compatibility_date = "2026-11-10"
+
+[vars]
+GA_REPORT_START_DATE = "2020-01-01"
+GA_PROPERTY_ID = "563559233"
+GA_CLIENT_EMAIL = "visitor-statistics-reader@pintu-naik-visitor-statistics.iam.gserviceaccount.com"

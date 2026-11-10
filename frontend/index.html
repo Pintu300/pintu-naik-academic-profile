@@ -256,6 +256,38 @@
         </div>
       </section>
 
+      <section class="academic-section visitor-stats" aria-labelledby="visitor-stats-title" data-reveal>
+        <div class="academic-section__inner">
+          <div class="academic-section__heading">
+            <p class="academic-eyebrow">Website reach</p>
+            <h2 id="visitor-stats-title">Visitors around the world</h2>
+            <p>See how many people have visited and where they are visiting from.</p>
+          </div>
+          <div
+            class="visitor-stats__panel"
+            data-visitor-stats
+            data-endpoint="https://pintu-naik-visitor-stats.pintunaik300.workers.dev/api/visitor-stats"
+          >
+            <div class="visitor-stats__summary">
+              <span class="visitor-stats__label">Total visitors</span>
+              <strong class="visitor-stats__total" data-visitor-total>—</strong>
+              <span class="visitor-stats__period" data-visitor-period>Unique visitors</span>
+            </div>
+            <div class="visitor-stats__countries">
+              <div class="visitor-stats__countries-heading">
+                <h3>Visitors by country</h3>
+                <span>Top countries</span>
+              </div>
+              <p class="visitor-stats__status" data-visitor-status role="status" aria-live="polite">
+                Setup required: connect the secure visitor-statistics service to show live counts.
+              </p>
+              <ul class="visitor-stats__list" data-visitor-list aria-label="Visitors by country" hidden></ul>
+            </div>
+            <p class="visitor-stats__updated" data-visitor-updated></p>
+          </div>
+        </div>
+      </section>
+
       <section class="academic-section academic-contact" id="contact" aria-labelledby="contact-title" data-reveal>
         <div class="academic-section__inner academic-contact__inner">
           <div>
@@ -283,6 +315,7 @@
       <a href="index.html">Back to top ↑</a>
     </footer>
     <script src="analytics.js"></script>
+    <script src="visitor-stats.js"></script>
     <script src="script.js"></script>
   </body>
 </html>

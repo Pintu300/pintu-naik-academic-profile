@@ -122,6 +122,12 @@ You can also choose a custom username:
 ADMIN_USER="yourname" ADMIN_PASSWORD="change-this-password" npm start
 ```
 
+The local server validates admin updates, limits request bodies to 1 MB, and
+requires Basic authentication for the editor and its API. Use it on localhost
+or behind HTTPS; Basic authentication should not be exposed over an untrusted
+plain-HTTP network. Server errors are logged to the terminal, while API
+responses return concise error messages.
+
 ## Customize
 
 For local development, use the protected admin editor or edit the relevant
@@ -241,6 +247,12 @@ Protected admin API:
 
 ```bash
 http://localhost:3000/api/admin/site-data
+```
+
+Run the backend integration tests with:
+
+```bash
+npm test
 ```
 
 ## Standard Workflow

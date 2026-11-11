@@ -5,7 +5,7 @@
   "department": "CSE Department",
   "email": "pintunaik300@gmail.com",
   "photo": "assets/Photo.jpeg",
-  "summary": "My research focuses on scalable parallel and distributed algorithms, GPU-accelerated graph processing, and efficient workload scheduling on heterogeneous systems.",
+  "summary": "My research focuses on scalable parallel and distributed algorithms, GPU-accelerated graph processing, and developing efficient scheduling methods for nanopore sequencing workloads on heterogeneous ARM–GPU systems.",
   "researchAreas": "Parallel algorithms, GPU computing, and heterogeneous systems",
   "focus": "Scalability, memory efficiency, and workload scheduling",
   "aboutHeading": "Parallel algorithms and heterogeneous computing",

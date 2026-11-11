@@ -202,6 +202,34 @@ test("saves valid admin updates and validates all required data", async () => {
   assert.deepEqual(await invalidResponse.json(), { error: "teaching must be an array." });
 });
 
+test("admin saves automatically snapshot the previous content outside public files", async () => {
+  const next = structuredClone(DATA);
+  next.profile.name = "New content";
+  const response = await fetch(`${baseUrl}/api/admin/site-data`, {
+    method: "PUT", headers: { Cookie: adminCookie, "X-CSRF-Token": csrfToken, "If-Match": revision, "Content-Type": "application/json" }, body: JSON.stringify(next)
+  });
+  assert.equal(response.status, 200);
+  const directory = path.join(temporaryDirectory, "backups");
+  const files = await fs.readdir(directory);
+  assert.equal(files.length, 1);
+  assert.deepEqual(JSON.parse(await fs.readFile(path.join(directory, files[0]), "utf8")), DATA);
+  const currentSnapshot = await server.createBackup();
+  assert.equal(JSON.parse(await fs.readFile(currentSnapshot, "utf8")).profile.name, next.profile.name);
+  assert.notEqual((await fetch(`${baseUrl}/backups/${path.basename(currentSnapshot)}`)).status, 200);
+});
+
+test("an unavailable snapshot directory cancels the save without changing website content", async () => {
+  await fs.writeFile(path.join(temporaryDirectory, "backups"), "Not a directory");
+  const next = structuredClone(DATA);
+  next.profile.name = "Must not be saved";
+  const response = await fetch(`${baseUrl}/api/admin/site-data`, {
+    method: "PUT", headers: { Cookie: adminCookie, "X-CSRF-Token": csrfToken, "If-Match": revision, "Content-Type": "application/json" }, body: JSON.stringify(next)
+  });
+  assert.equal(response.status, 503);
+  assert.match((await response.json()).error, /Save cancelled/);
+  assert.deepEqual(JSON.parse(await fs.readFile(path.join(temporaryDirectory, "data/profile.json"), "utf8")), DATA.profile);
+});
+
 test("rolls back a data update when a file cannot be replaced", async (t) => {
   const dataDir = path.join(temporaryDirectory, "data");
   const rename = fs.rename.bind(fs);

@@ -10,6 +10,7 @@ const DATA_DIR = path.join(__dirname, "data");
 const MAX_BODY_BYTES = 1_000_000;
 const { createAdminAuth } = require("./auth");
 const { isPublicAsset, publicFiles } = require("./public-files");
+const { createBackupStore } = require("./snapshot-store");
 const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
   "script-src 'self' https://www.googletagmanager.com",
@@ -384,7 +385,13 @@ const serveAdminApi = async (request, response, loadData, maxBodyBytes, csrfToke
     sendJson(request, response, 428, { error: "Reload the editor before saving. A content version is required." });
     return;
   }
-  const revision = await saveData(nextData, request.headers["if-match"]);
+  let revision;
+  try { revision = await saveData(nextData, request.headers["if-match"]); }
+  catch (error) {
+    if (error.code !== "BACKUP_UNAVAILABLE") throw error;
+    sendJson(request, response, 503, { error: "Automatic backup failed. Save cancelled; existing website content is unchanged. Check the backup directory and available disk space." });
+    return;
+  }
   response.setHeader("ETag", revision);
   sendJson(request, response, 200, { status: "saved" });
 };
@@ -500,6 +507,8 @@ const createServer = ({
   adminOrigin = process.env.ADMIN_ORIGIN || "",
   frontendDir = FRONTEND_DIR,
   dataDir = DATA_DIR,
+  backupDirectory = process.env.BACKUP_DIR || path.join(path.dirname(dataDir), "backups"),
+  backupRetention = Number(process.env.BACKUP_RETENTION || 30),
   maxBodyBytes = MAX_BODY_BYTES,
   now = Date.now
 } = {}) => {
@@ -507,6 +516,10 @@ const createServer = ({
     throw new Error("ADMIN_ORIGIN must be an exact HTTP(S) origin without a trailing slash.");
   }
   const auth = createAdminAuth({ adminUser, adminPassword, adminOrigin, sendJson, readRequestBody, now });
+  const backups = createBackupStore({
+    directory: backupDirectory, retention: backupRetention, now,
+    forbiddenDirectories: [frontendDir, dataDir, path.join(ROOT_DIR, "dist")]
+  });
   let pendingOperation = Promise.resolve();
   const serialize = (operation) => {
     const result = pendingOperation.then(operation);
@@ -516,9 +529,17 @@ const createServer = ({
   const loadData = () => serialize(() => readSiteData(dataDir));
   const loadResource = (resource) => serialize(() => readJsonFile(dataDir, DATA_FILES[resource]));
   const saveData = (data, expectedRevision) => serialize(async () => {
-    if (dataRevision(await readSiteData(dataDir)) !== expectedRevision) {
+    const current = await readSiteData(dataDir);
+    if (dataRevision(current) !== expectedRevision) {
       const error = new Error("Content changed since you opened the editor. Download your draft, then reload the saved content and apply your edits again.");
       error.statusCode = 412;
+      throw error;
+    }
+    try { await backups.create(current); }
+    catch {
+      const error = new Error("Automatic backup failed. Save cancelled; existing website content is unchanged. Check the backup directory and available disk space.");
+      error.code = "BACKUP_UNAVAILABLE";
+      error.statusCode = 503;
       throw error;
     }
     await writeSiteData(dataDir, data);
@@ -590,6 +611,12 @@ const createServer = ({
   server.headersTimeout = 10_000;
   server.keepAliveTimeout = 5_000;
   server.maxRequestsPerSocket = 100;
+  server.createBackup = () => serialize(async () => {
+    const current = await readSiteData(dataDir);
+    const error = validateSiteData(current);
+    if (error) throw new Error("Cannot back up invalid website content.");
+    return backups.create(current);
+  });
   return server;
 };
 
@@ -597,6 +624,12 @@ const startServer = () => {
   const port = Number(process.env.PORT) || 3000;
   const host = process.env.HOST || "127.0.0.1";
   const server = createServer();
+  let backupTimer;
+  const automaticBackup = () => server.createBackup().then(() => {
+    console.log("Automatic content backup completed.");
+  }).catch(() => {
+    console.error("Automatic content backup failed. Check BACKUP_DIR permissions and disk space.");
+  });
 
   server.once("error", (error) => {
     if (error.code === "EADDRINUSE") {
@@ -615,7 +648,11 @@ const startServer = () => {
     if (!process.env.ADMIN_PASSWORD) {
       console.warn("Admin editor disabled. Set ADMIN_PASSWORD to enable /admin.html.");
     }
+    void automaticBackup();
+    backupTimer = setInterval(() => { void automaticBackup(); }, 24 * 60 * 60 * 1000);
+    backupTimer.unref();
   });
+  server.once("close", () => clearInterval(backupTimer));
 
   const shutdown = (signal) => {
     console.log(`${signal} received; closing server.`);

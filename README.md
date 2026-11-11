@@ -167,6 +167,19 @@ This updates the session token without replacing your fields. If saved content
 changed while you were signed out, the older draft remains protected from
 overwriting it; download the draft before reloading and reapplying your edits.
 
+## Automatic backups and browser checks
+
+The local backend now snapshots public content at startup, daily while running,
+and before each admin save. The latest 30 managed snapshots are kept under the
+ignored `backend/backups/` directory. A failed pre-save snapshot cancels the save
+without changing content. Run `npm run backup` for a manual snapshot while the
+backend is stopped. Restart the server to begin automatic backups.
+
+GitHub Actions runs Firefox regression checks before publishing and retains
+browser diagnostics separately for seven days. Push the changes to activate
+the updated workflow. For configuration, limitations, and remaining owner
+actions, see [Operations](docs/OPERATIONS.md).
+
 ## Physical-device acceptance checks
 
 Linux WebKit checks do not establish compatibility with Safari on macOS/iOS.

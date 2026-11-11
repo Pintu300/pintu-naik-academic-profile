@@ -46,6 +46,33 @@ jobs:
       - name: Run regression tests
         run: npm test
 
+      - name: Set up Firefox
+        id: firefox
+        uses: browser-actions/setup-firefox@0bc507ddf224827e3b1af68e014d5e42ab93e795 # v1
+        with:
+          firefox-version: latest
+
+      - name: Set up geckodriver
+        uses: browser-actions/setup-geckodriver@78df1e66d20b8af6da82099a570868d171e5ad18
+        with:
+          geckodriver-version: latest
+          token: ${{ github.token }}
+
+      - name: Run browser regression tests
+        timeout-minutes: 10
+        env:
+          FIREFOX_BINARY: ${{ steps.firefox.outputs.firefox-path }}
+        run: npm run test:browser
+
+      - name: Keep browser diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-review
+          path: artifacts/browser/
+          if-no-files-found: ignore
+          retention-days: 7
+
       - name: Build static website
         run: npm run build
 

@@ -361,3 +361,31 @@ Linux verification. Credential pattern checks and dependency advisories are
 bounded checks, not a guarantee against every vulnerability. No deployment or
 Git history rewrite was performed. Restart the local backend to use the new
 recovery/read behavior, and push the reviewed changes when ready.
+
+## Automatic backups and browser CI — 11 November 2026
+
+The backend now creates private content snapshots before admin saves and,
+when started normally, at startup and every 24 hours while running. The default
+ignored `backend/backups/` destination is outside public output. The newest 30
+managed snapshots are retained; unrelated/manual files are preserved. Files
+use 0600 permissions and newly created directories use 0700. A pre-save backup
+failure returns a safe HTTP 503 message and cancels the update. `npm run backup`
+provides a manual option while the backend is stopped.
+
+The deployment workflow now installs Firefox/geckodriver through pinned setup
+actions and runs the browser suite before building/publishing. Diagnostics are
+retained separately for seven days. The browser executable can be specified
+with `FIREFOX_BINARY`; Ubuntu's Snap launcher was rejected as expected, and the
+actual Firefox executable completed the tests.
+
+Verification passed: **72 automated tests**, **47 Firefox checks**, syntax and
+static build checks, workflow YAML/ordering validation, a startup/manual-backup
+smoke test, and a redacted source/index/history credential scan. Test content
+remained isolated and the real JSON data fingerprints were unchanged. The first
+hosted run of the updated workflow is pending a push; no deployment was made.
+
+No Android phone or external browser-testing credentials were connected. The
+GitHub integration remains uninstalled; account 2FA/push-protection settings
+could not be verified or changed. Owner actions and official instructions are
+recorded in `docs/OPERATIONS.md`. The configured snapshots are local content
+backups, not an offsite service or a copy of image/PDF assets.

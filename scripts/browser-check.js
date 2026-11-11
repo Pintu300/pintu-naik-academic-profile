@@ -94,7 +94,9 @@ const run = async () => {
     }
     if (!ready) throw new Error(`Firefox driver did not start: ${driverLogs.slice(-1500)}`);
     const session = await wire("POST", "/session", { capabilities: { alwaysMatch: {
-      browserName: "firefox", webSocketUrl: true, pageLoadStrategy: "eager", "moz:firefoxOptions": { args: ["-headless"], prefs: {
+      browserName: "firefox", webSocketUrl: true, pageLoadStrategy: "eager", "moz:firefoxOptions": {
+        ...(process.env.FIREFOX_BINARY ? { binary: process.env.FIREFOX_BINARY } : {}),
+        args: ["-headless"], prefs: {
         "browser.shell.checkDefaultBrowser": false,
         "browser.download.folderList": 2,
         "browser.download.dir": output,

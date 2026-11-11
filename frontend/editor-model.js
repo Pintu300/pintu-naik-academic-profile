@@ -30,4 +30,28 @@ const updateEditorRecord = (original, values) => {
   return record;
 };
 
-if (typeof module !== "undefined") module.exports = { editorSections, editorField, updateEditorRecord };
+// Only genuine interaction renews the session; timers/background tabs never do.
+const createEditorSessionTracker = ({ onActivity, onIdle, isVisible, now = Date.now,
+  setTimer = setTimeout, clearTimer = clearTimeout, idleMs = 5 * 60 * 1000, pingMs = 30000 }) => {
+  let running = false;
+  let lastActivity = 0;
+  let lastPing = 0;
+  let timer;
+  const stop = () => { running = false; clearTimer(timer); };
+  const check = () => {
+    if (!running) return false;
+    if (now() - lastActivity >= idleMs) { stop(); onIdle(); return false; }
+    return true;
+  };
+  const schedule = () => { clearTimer(timer); timer = setTimer(() => { if (check()) schedule(); }, Math.max(1, idleMs - (now() - lastActivity))); };
+  const start = () => { running = true; lastActivity = lastPing = now(); schedule(); };
+  const activity = () => {
+    if (!check() || !isVisible()) return;
+    lastActivity = now();
+    schedule();
+    if (now() - lastPing >= pingMs) { lastPing = now(); onActivity(); }
+  };
+  return { start, stop, activity, check };
+};
+
+if (typeof module !== "undefined") module.exports = { editorSections, editorField, updateEditorRecord, createEditorSessionTracker };

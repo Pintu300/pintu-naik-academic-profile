@@ -32,6 +32,7 @@ test("PostgreSQL credentials are reported without echoing connection strings", (
   assert.deepEqual(findings, ["database connection credentials"]);
   assert.ok(!JSON.stringify(findings).includes(connection));
   assert.deepEqual(inspectFile("config.txt", 'PGPASSWORD="synthetic-value"'), ["literal database password"]);
+  assert.deepEqual(inspectFile("config.txt", 'SMTP_PASSWORD="synthetic-value"'), ["literal mail password"]);
 });
 
 test("only designated asset types and the generated image manifest can be published", () => {

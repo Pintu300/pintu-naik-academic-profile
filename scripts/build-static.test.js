@@ -18,7 +18,7 @@ test("static build includes public pages and data, excludes admin tools, and use
         await fs.access(path.join(temporary, match[1].split("#")[0]));
       }
     }
-    for (const filename of ["admin.html", "admin.js", "login.html", "login.js", "editor-model.js", "script.test.js", "editor-model.test.js"]) {
+    for (const filename of ["admin.html", "admin.js", "login.html", "login.js", "recovery.html", "recovery.js", "editor-model.js", "script.test.js", "editor-model.test.js"]) {
       await assert.rejects(fs.access(path.join(temporary, filename)), { code: "ENOENT" });
     }
     const sitemap = await fs.readFile(path.join(temporary, "sitemap.xml"), "utf8");

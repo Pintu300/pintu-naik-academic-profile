@@ -5,9 +5,11 @@ const fs = require("node:fs/promises");
 const path = require("node:path");
 const os = require("node:os");
 const { promisify } = require("node:util");
-const { execFile } = require("node:child_process");
+const { execFile, spawn } = require("node:child_process");
+const { scrypt } = require("node:crypto");
 const { databaseConfiguration, createDatabasePool, migrateDatabase, checkDatabase, backupDatabase } = require("./database");
 const { createContentStore } = require("./content-store");
+const { createAdminAccount } = require("./admin-account");
 const { createServer, readSiteData } = require("./server");
 const { createHash } = require("node:crypto");
 const revision = (data) => `"${createHash("sha256").update(JSON.stringify(data)).digest("hex")}"`;
@@ -64,6 +66,144 @@ const integrationTest = (name, run) => test(name, { skip: process.env.TEST_DATAB
   }
 });
 const addUser = async (pool) => (await pool.query("INSERT INTO portfolio.users(email, display_name, password_hash) VALUES ($1, $2, $3) RETURNING id", ["visitor@example.invalid", "Test Visitor", "Test fixture, not an authenticating hash"])).rows[0].id;
+
+integrationTest("an occupied website port cannot seed initial admin credentials", async ({ pool, connectionString }) => {
+  await migrateDatabase(pool);
+  await createContentStore(pool).import({ profile: { name: "Test" } });
+  const blocker = require("node:net").createServer();
+  await new Promise((resolve) => blocker.listen(0, "127.0.0.1", resolve));
+  try {
+    await assert.rejects(exec(process.execPath, [path.join(__dirname, "server.js")], { env: { ...process.env,
+      DATABASE_URL: connectionString, PORT: String(blocker.address().port), HOST: "127.0.0.1", ADMIN_PASSWORD: "test-password" }, timeout: 10000 }),
+    (error) => error.code === 1 && error.stderr.includes("already in use"));
+    assert.equal((await pool.query("SELECT count(*)::integer AS count FROM portfolio.admin_account")).rows[0].count, 0);
+  } finally { await new Promise((resolve) => blocker.close(resolve)); }
+});
+
+integrationTest("local password reset uses hidden prompts and preserves the recovery email without mail configuration", async ({ pool, connectionString }) => {
+  await migrateDatabase(pool);
+  const account = createAdminAccount(pool);
+  await account.provision({ username: "owner", password: "test-password", email: "owner@example.invalid" });
+  const password = randomBytes(24).toString("hex");
+  const child = spawn(process.execPath, [path.join(__dirname, "../scripts/configure-admin.js"), "--password-only"], {
+    env: { ...process.env, DATABASE_URL: connectionString, ADMIN_USER: "owner", ADMIN_PASSWORD: "ignored-old-value" }, stdio: ["pipe", "pipe", "pipe"]
+  });
+  let output = "";
+  let stage = 0;
+  const timer = setTimeout(() => child.kill("SIGKILL"), 10000);
+  try {
+    const exit = await new Promise((resolve, reject) => {
+      child.on("error", reject);
+      child.stdout.on("data", (chunk) => {
+        output += chunk.toString();
+        if (stage === 0 && output.includes("New website admin password")) { stage = 1; child.stdin.write(`${password}\n`); }
+        if (stage === 1 && output.includes("Confirm website admin password")) { stage = 2; child.stdin.write(`${password}\n`); }
+      });
+      child.stderr.on("data", (chunk) => { output += chunk.toString(); });
+      child.on("close", resolve);
+    });
+    assert.equal(exit, 0);
+    assert.equal(output.includes(password), false);
+    const updated = await account.read();
+    assert.equal(updated.recovery_email, "owner@example.invalid");
+    assert.equal(updated.credential_version, 2);
+    const key = await promisify(scrypt)(password, updated.password_salt, 32);
+    assert.equal(key.toString("hex") === updated.password_hash, true);
+  } finally { clearTimeout(timer); }
+});
+
+integrationTest("admin recovery codes expire, resist guessing, replace old codes, and are consumed atomically", async ({ pool }) => {
+  await migrateDatabase(pool);
+  let time = Date.now();
+  const secret = randomBytes(32).toString("hex");
+  const account = createAdminAccount(pool, { secret, now: () => time });
+  await account.provision({ username: "owner", password: "test-password", email: "owner@example.invalid" });
+  const messages = [];
+  const mail = async (message) => { messages.push(message); };
+  await account.request("unknown@example.invalid", mail);
+  assert.equal(messages.length, 0);
+  await account.request("owner@example.invalid", mail);
+  assert.equal(messages.length, 1);
+  const first = messages[0].code;
+  assert.match(first, /^\d{8}$/);
+  const stored = await account.read();
+  assert.equal(stored.otp_digest.includes(first), false);
+  assert.equal(stored.password_hash.includes("test-password"), false);
+  await account.request("owner@example.invalid", mail);
+  assert.equal(messages.length, 1);
+  const wrong = (first[0] === "0" ? "1" : "0") + first.slice(1);
+  for (let attempt = 0; attempt < 5; attempt++) assert.equal(await account.reset({ email: "owner@example.invalid", code: wrong, password: "new-test-password" }), null);
+  assert.equal(await account.reset({ email: "owner@example.invalid", code: first, password: "new-test-password" }), null);
+  time += 61000;
+  await account.request("owner@example.invalid", mail);
+  const second = messages[1].code;
+  assert.equal(await account.reset({ email: "owner@example.invalid", code: first, password: "new-test-password" }), null);
+  const resetData = { email: "owner@example.invalid", code: second, password: "new-test-password" };
+  const result = await Promise.all([account.reset(resetData), account.reset(resetData)]);
+  assert.equal(result.filter((value) => value === "owner").length, 1);
+  assert.equal((await account.read()).credential_version, 2);
+  await account.provision({ username: "should-not-overwrite", password: "another-password" });
+  assert.equal((await account.read()).username, "owner");
+  time += 61000;
+  await account.request("owner@example.invalid", mail);
+  time += 10 * 60 * 1000;
+  assert.equal(await account.reset({ ...resetData, code: messages[2].code }), null);
+  // Limits are held in PostgreSQL and apply across application instances.
+  const secondInstance = createAdminAccount(pool, { secret, now: () => time });
+  await secondInstance.request("owner@example.invalid", mail);
+  time += 61000;
+  await account.request("owner@example.invalid", mail);
+  time += 61000;
+  await secondInstance.request("owner@example.invalid", mail);
+  assert.equal(messages.length, 5);
+});
+
+integrationTest("email recovery HTTP flow protects account details, recovers username, and revokes existing sessions", async ({ pool }) => {
+  await migrateDatabase(pool);
+  const accountStore = createAdminAccount(pool);
+  await accountStore.provision({ username: "owner", password: "test-password", email: "owner@example.invalid" });
+  const messages = [];
+  const server = createServer({ accountStore, recoveryMailer: async (message) => { messages.push(message); } });
+  try {
+    await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+    const base = `http://127.0.0.1:${server.address().port}`;
+    const post = (route, data, extra = {}) => fetch(`${base}/api/auth/${route}`, { method: "POST", headers: { "Content-Type": "application/json", "X-Requested-With": "admin-editor", ...extra }, body: JSON.stringify(data) });
+    const login = await post("login", { username: "owner", password: "test-password" });
+    assert.equal(login.status, 200);
+    const cookie = login.headers.get("set-cookie").split(";")[0];
+    assert.equal((await fetch(`${base}/admin.html`, { headers: { Cookie: cookie } })).status, 200);
+    assert.equal((await fetch(`${base}/recovery.html`)).status, 200);
+    assert.equal((await post("recovery/request", { email: "owner@example.invalid" }, { Origin: "https://untrusted.invalid" })).status, 403);
+    const unknown = await post("recovery/request", { email: "other@example.invalid" });
+    const known = await post("recovery/request", { email: "owner@example.invalid" });
+    assert.equal(known.status, 202);
+    assert.deepEqual(await known.json(), await unknown.json());
+    for (let i = 0; i < 30 && !messages.length; i++) await new Promise((resolve) => setTimeout(resolve, 10));
+    assert.equal(messages.length, 1);
+    const reset = { email: "owner@example.invalid", code: messages[0].code, password: "new-secure-test-password", confirmPassword: "new-secure-test-password" };
+    assert.equal((await post("recovery/reset", { ...reset, password: "short", confirmPassword: "short" })).status, 400);
+    const response = await post("recovery/reset", reset);
+    assert.equal(response.status, 200);
+    assert.equal((await response.json()).username, "owner");
+    assert.equal((await fetch(`${base}/api/admin/site-data`, { headers: { Cookie: cookie } })).status, 401);
+    assert.equal((await post("login", { username: "owner", password: "test-password" })).status, 401);
+    assert.equal((await post("login", { username: "owner", password: reset.password })).status, 200);
+    assert.equal((await post("recovery/reset", reset)).status, 400);
+    for (let i = 0; i < 4; i++) await post("recovery/request", { email: "other@example.invalid" });
+    assert.equal((await post("recovery/request", { email: "owner@example.invalid" })).status, 429);
+  } finally {
+    server.closeAllConnections();
+    await new Promise((resolve) => server.close(resolve));
+  }
+});
+
+integrationTest("failed recovery delivery invalidates the undelivered code", async ({ pool }) => {
+  await migrateDatabase(pool);
+  const account = createAdminAccount(pool);
+  await account.provision({ username: "owner", password: "test-password", email: "owner@example.invalid" });
+  await account.request("owner@example.invalid", async () => { throw new Error("Synthetic mail error"); });
+  assert.equal((await account.read()).otp_digest, null);
+});
 
 integrationTest("PostgreSQL content preserves imports, serializes concurrent edits, and rolls back failed backups", async ({ pool, createPool }) => {
   await migrateDatabase(pool);
@@ -128,7 +268,7 @@ integrationTest("PostgreSQL migrations are atomic, idempotent, and safe under co
   await addUser(pool);
   await migrateDatabase(pool);
   assert.equal((await pool.query("SELECT count(*)::integer AS count FROM portfolio.users")).rows[0].count, 1);
-  assert.equal((await pool.query("SELECT count(*)::integer AS count FROM portfolio.schema_migrations")).rows[0].count, 2);
+  assert.equal((await pool.query("SELECT count(*)::integer AS count FROM portfolio.schema_migrations")).rows[0].count, 3);
 });
 
 integrationTest("PostgreSQL constraints enforce ownership, uniqueness, moderation, and bound content", async ({ pool }) => {

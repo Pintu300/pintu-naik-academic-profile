@@ -310,6 +310,19 @@ const run = async () => {
         report.printTextValidation = "Publications, skills, teaching, and research interests confirmed in PDF.";
       } else report.printTextValidation = "Not checked: pdftotext is not installed.";
     });
+    await check("recovery form fits mobile and desktop and reports unconfigured mail without submitting incomplete reset fields", async () => {
+      for (const width of [390, 1440]) {
+        await viewport(width, 1000);
+        await navigate(`${base}/recovery.html`);
+        assert.ok(await js("return Boolean(document.querySelector('[name=code][autocomplete=one-time-code]') && document.querySelector('[name=password][autocomplete=new-password]'))"));
+        const dimensions = await js("return { width: innerWidth, scroll: document.documentElement.scrollWidth }");
+        assert.ok(dimensions.scroll <= dimensions.width + 1);
+      }
+      await fill("[name=email]", "owner@example.invalid");
+      await click("[data-request-code]");
+      await waitFor("return document.querySelector('[data-recovery-status]').dataset.status === 'error'", "unconfigured recovery status");
+      assert.match(await js("return document.querySelector('[data-recovery-status]').textContent"), /not configured/);
+    });
     await check("admin login rejects wrong credentials and opens the editor on success", async () => {
       await navigate(`${base}/admin.html`);
       assert.ok((await command("GET", "/url")).endsWith("/login.html"));
@@ -464,7 +477,7 @@ const run = async () => {
     await check("expired sessions preserve drafts and reconnect without reloading", async () => {
       await fill("[name='profile.name']", "Draft retained after session expiry");
       const beforeSave = await fs.readFile(path.join(dataDir, "profile.json"), "utf8");
-      adminTime += 31 * 60 * 1000;
+      adminTime += 6 * 60 * 1000;
       await click("[data-editor-save]");
       await waitFor("return !document.querySelector('[data-editor-session]').hidden", "session recovery notice");
       assert.ok((await command("GET", "/url")).endsWith("/admin.html"));
@@ -484,7 +497,7 @@ const run = async () => {
     });
     await check("reconnecting cannot bypass save-conflict protection", async () => {
       await fill("[name='profile.name']", "Older draft after second expiry");
-      adminTime += 31 * 60 * 1000;
+      adminTime += 6 * 60 * 1000;
       await click("[data-editor-save]");
       await waitFor("return !document.querySelector('[data-editor-session]').hidden", "second session expiry");
       const file = path.join(dataDir, "profile.json");

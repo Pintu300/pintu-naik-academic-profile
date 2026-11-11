@@ -39,4 +39,22 @@ module.exports = [{
       updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
   `
+}, {
+  version: 3,
+  sql: `
+    CREATE TABLE portfolio.admin_account (
+      id integer PRIMARY KEY CHECK (id = 1),
+      username text NOT NULL CHECK (char_length(username) BETWEEN 1 AND 256),
+      password_salt text NOT NULL CHECK (password_salt ~ '^[a-f0-9]{64}$'),
+      password_hash text NOT NULL CHECK (password_hash ~ '^[a-f0-9]{64}$'),
+      credential_version integer NOT NULL DEFAULT 1,
+      recovery_email text NOT NULL DEFAULT '',
+      otp_digest text,
+      otp_expires_at timestamptz,
+      otp_attempts integer NOT NULL DEFAULT 0,
+      mail_window timestamptz,
+      mail_count integer NOT NULL DEFAULT 0,
+      last_mail_at timestamptz
+    );
+  `
 }];

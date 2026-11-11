@@ -18,6 +18,7 @@ const inspectFile = (filename, content) => {
   if (isSensitivePath(filename)) categories.push("private filename");
   if (!/\.test\.[cm]?js$/.test(filename)) {
     if (/(?:DATABASE_PASSWORD|PGPASSWORD|POSTGRES_PASSWORD)["']?\s*[:=]\s*["'][^"'\r\n]+["']/.test(content)) categories.push("literal database password");
+    if (/(?:SMTP_PASSWORD|GMAIL_APP_PASSWORD)["']?\s*[:=]\s*["'][^"'\r\n]+["']/.test(content)) categories.push("literal mail password");
     const assignments = content.matchAll(/(?:ADMIN_PASSWORD|adminPassword)["']?\s*[:=]\s*["']([^"'\r\n]+)["']/g);
     for (const [, value] of assignments) {
       if (!/^(?:change-this-password|test-password|your[-_ ].*|example[-_ ].*|placeholder|\$.*)$/i.test(value)) {

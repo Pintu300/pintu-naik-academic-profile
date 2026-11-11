@@ -1,9 +1,10 @@
 const { randomBytes, scryptSync, scrypt, timingSafeEqual, createHash } = require("node:crypto");
 const { promisify } = require("node:util");
+const { createRecoveryHandler } = require("./recovery-handler");
 
 const deriveKey = promisify(scrypt);
 const SESSION_LIFETIME = 8 * 60 * 60 * 1000;
-const IDLE_TIMEOUT = 30 * 60 * 1000;
+const IDLE_TIMEOUT = 5 * 60 * 1000;
 const LOGIN_WINDOW = 15 * 60 * 1000;
 const COOKIE_NAME = "admin_session";
 
@@ -13,13 +14,14 @@ const sameOrigin = (request, adminOrigin) => {
     && (!request.headers.origin || request.headers.origin === origin);
 };
 
-const createAdminAuth = ({ adminUser, adminPassword, adminOrigin, sendJson, readRequestBody, now = Date.now }) => {
+const createAdminAuth = ({ adminUser, adminPassword, adminOrigin, sendJson, readRequestBody, accountStore, recoveryMailer, now = Date.now }) => {
   const sessions = new Map();
   const attempts = new Map();
   const salt = randomBytes(32);
   const passwordKey = scryptSync(adminPassword, salt, 32);
   const usernameKey = createHash("sha256").update(adminUser).digest();
-  const enabled = Boolean(adminPassword);
+  const enabled = Boolean(accountStore || adminPassword);
+  const handleRecovery = createRecoveryHandler({ accountStore, mailer: recoveryMailer, sendJson, readRequestBody, now });
   let activeLogins = 0;
 
   const cookieId = (request) => {
@@ -41,12 +43,17 @@ const createAdminAuth = ({ adminUser, adminPassword, adminOrigin, sendJson, read
     const secure = request.socket.encrypted || adminOrigin.startsWith("https://");
     response.setHeader("Set-Cookie", `${COOKIE_NAME}=${id}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${maxAge}${secure ? "; Secure" : ""}`);
   };
-  const sessionFor = (request) => {
+  const sessionFor = async (request) => {
     clearExpired();
-    return enabled ? sessions.get(cookieId(request)) : undefined;
+    const session = enabled ? sessions.get(cookieId(request)) : undefined;
+    if (session && accountStore && (await accountStore.read())?.credential_version !== session.credentialVersion) {
+      sessions.delete(cookieId(request));
+      return undefined;
+    }
+    return session;
   };
-  const authorize = (request, response, pathname) => {
-    const session = sessionFor(request);
+  const authorize = async (request, response, pathname) => {
+    const session = await sessionFor(request);
     if (!session) {
       if (pathname === "/admin.html" && ["GET", "HEAD"].includes(request.method)) {
         response.setHeader("Location", "/login.html");
@@ -61,7 +68,7 @@ const createAdminAuth = ({ adminUser, adminPassword, adminOrigin, sendJson, read
     return true;
   };
   const handleAuth = async (request, response, pathname) => {
-    if (!["/api/auth/login", "/api/auth/logout"].includes(pathname)) return false;
+    if (!["/api/auth/login", "/api/auth/logout", "/api/auth/activity", "/api/auth/recovery/request", "/api/auth/recovery/reset"].includes(pathname)) return false;
     if (request.method !== "POST") {
       response.setHeader("Allow", "POST");
       sendJson(request, response, 405, { error: "Method not allowed." });
@@ -71,8 +78,14 @@ const createAdminAuth = ({ adminUser, adminPassword, adminOrigin, sendJson, read
       sendJson(request, response, 403, { error: "Invalid authentication request." });
       return true;
     }
-    if (pathname === "/api/auth/logout") {
-      const session = sessionFor(request);
+    if (pathname.startsWith("/api/auth/recovery/")) {
+      if (!/^application\/json(?:\s*;|$)/i.test(request.headers["content-type"] || "")) {
+        sendJson(request, response, 415, { error: "Content-Type must be application/json." });
+      } else await handleRecovery(request, response, pathname);
+      return true;
+    }
+    if (["/api/auth/logout", "/api/auth/activity"].includes(pathname)) {
+      const session = await sessionFor(request);
       const token = request.headers["x-csrf-token"] || "";
       if (!session) {
         sendJson(request, response, 401, { error: "Authentication required." });
@@ -80,9 +93,14 @@ const createAdminAuth = ({ adminUser, adminPassword, adminOrigin, sendJson, read
         || !timingSafeEqual(Buffer.from(token), Buffer.from(session.csrfToken))) {
         sendJson(request, response, 403, { error: "Invalid authentication request." });
       } else {
-        sessions.delete(cookieId(request));
-        setCookie(request, response, "", 0);
-        sendJson(request, response, 200, { status: "signed-out" });
+        if (pathname === "/api/auth/activity") {
+          session.lastSeen = now();
+          sendJson(request, response, 200, { status: "active" });
+        } else {
+          sessions.delete(cookieId(request));
+          setCookie(request, response, "", 0);
+          sendJson(request, response, 200, { status: "signed-out" });
+        }
       }
       return true;
     }
@@ -136,18 +154,19 @@ const createAdminAuth = ({ adminUser, adminPassword, adminOrigin, sendJson, read
       }
       activeLogins++;
       verifyingPassword = true;
-      const suppliedKey = await deriveKey(credentials.password, salt, 32);
+      const account = accountStore ? await accountStore.read() : null;
+      const suppliedKey = await deriveKey(credentials.password, account?.password_salt || salt, 32);
       const suppliedUser = createHash("sha256").update(credentials.username).digest();
-      const passwordMatches = timingSafeEqual(passwordKey, suppliedKey);
-      const usernameMatches = timingSafeEqual(usernameKey, suppliedUser);
-      if (!passwordMatches || !usernameMatches) {
+      const passwordMatches = timingSafeEqual(account ? Buffer.from(account.password_hash, "hex") : passwordKey, suppliedKey);
+      const usernameMatches = timingSafeEqual(account ? createHash("sha256").update(account.username).digest() : usernameKey, suppliedUser);
+      if ((accountStore && !account) || !passwordMatches || !usernameMatches) {
         sendJson(request, response, 401, { error: "Incorrect username or password." });
         return true;
       }
       attempts.delete(address);
       sessions.delete(cookieId(request));
       const id = randomBytes(32).toString("hex");
-      sessions.set(id, { csrfToken: randomBytes(32).toString("hex"), expires: now() + SESSION_LIFETIME, lastSeen: now() });
+      sessions.set(id, { csrfToken: randomBytes(32).toString("hex"), expires: now() + SESSION_LIFETIME, lastSeen: now(), credentialVersion: account?.credential_version });
       setCookie(request, response, id, SESSION_LIFETIME / 1000);
       sendJson(request, response, 200, { status: "signed-in" });
       return true;

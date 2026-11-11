@@ -76,10 +76,9 @@ an isolated temporary PostgreSQL server. Run `npm run test:db` for database test
 or `npm run test:all` for the complete suite with an isolated local cluster.
 See [Database setup and limitations](docs/DATABASE.md).
 
-Node.js 22 is recommended for development and is configured in `.nvmrc` and
-GitHub Actions. Install the locked development tools with `npm ci`. The basic
-local server still supports Node 18, but regenerating images requires Node
-20.9 or newer because the patched Sharp build tool does not support Node 18.
+Node.js 22 or newer is required and is configured in `.nvmrc` and
+GitHub Actions. Install the locked development tools with `npm ci`. The patched
+email and image dependencies require a modern Node runtime.
 Generated images are included in the repository, so starting the server does
 not require regenerating them or loading Sharp.
 
@@ -92,7 +91,9 @@ npm start
 ```
 
 After rebooting, run `npm run db:start` before `npm start`. Admin authentication
-still uses your private `ADMIN_PASSWORD` server setting.
+uses the persistent PostgreSQL admin account. `ADMIN_PASSWORD` seeds an absent
+account only; it does not override later password resets. For email OTP recovery
+and local emergency resets, see [Admin recovery setup](docs/ADMIN-RECOVERY.md).
 
 Open the website:
 
@@ -227,7 +228,9 @@ publicly just to run a device test.
 The browser editor is available when you run the Node backend locally. It is
 not included in the GitHub Pages deployment.
 
-Start the server with a unique admin password entered at a hidden Bash prompt:
+For email OTP recovery, run the private setup described in
+[Admin recovery](docs/ADMIN-RECOVERY.md). To seed an absent admin account without
+email recovery, start with a unique password entered at a hidden Bash prompt:
 
 ```bash
 read -r -s -p "Admin password: " ADMIN_PASSWORD
@@ -245,7 +248,7 @@ http://localhost:3000/login.html
 
 Opening `/admin.html` redirects here when you are signed out.
 
-Login credentials:
+Initial login credentials (after first-time environment setup):
 
 ```text
 Username: admin
@@ -277,19 +280,26 @@ About text uses normal paragraphs separated by blank lines. Photo fields use
 local `assets/` paths; place files in `frontend/assets/` first. Existing custom
 record fields are preserved even if the editor does not display them.
 
-The login form authenticates against `ADMIN_USER` and `ADMIN_PASSWORD` on the
-Node server. Credentials are checked using scrypt and constant-time comparisons.
+The login form authenticates against the persistent PostgreSQL admin account.
+`ADMIN_USER` and `ADMIN_PASSWORD` seed an absent account only. Use
+`npm run admin:configure` for later manual credential changes or Gmail OTP setup;
+environment values never undo a completed email reset. Credentials are checked
+using scrypt and constant-time comparisons.
 There is no registration or default password. The editor and its API require
 an opaque server-side session; HTTP Basic authentication is no longer accepted.
 The portfolio remains public.
 
 Session cookies use `HttpOnly` and `SameSite=Strict`, with `Secure` enabled when
 `ADMIN_ORIGIN` uses HTTPS or the connection is encrypted. Sessions expire after
-30 minutes of inactivity or eight hours total. **Sign out** revokes the current
+5 minutes of inactivity or eight hours total. Trusted interaction in the visible
+editor renews idle time through a CSRF-protected activity request; unattended
+or hidden pages do not keep it alive. Unsaved drafts remain in the editor if
+the session expires; sign in again and reconnect to save. **Sign out** revokes the current
 session on the server. Signing in again rotates the current session and its
-CSRF token. Restarting the server signs out every session; changing the admin
-credentials requires a restart. Sessions and rate limits are held in memory,
-so this setup is intended for a single Node process.
+CSRF token. Restarting the server signs out every session. Email password resets
+invalidate existing sessions immediately using the database credential version.
+Restart after changing private mail configuration. Sessions and IP rate limits
+are held in memory; account-level recovery limits are stored in PostgreSQL.
 
 The local server validates admin updates and limits save request bodies to
 1 MB; login bodies have a separate 4 KB limit. Use localhost or HTTPS. Server
@@ -305,7 +315,8 @@ checks for credential patterns and private files before publishing.
 
 The local server binds to `127.0.0.1` by default. Open it at
 `http://localhost:3000`. The admin editor stays disabled until you set
-`ADMIN_PASSWORD`; use a unique password of at least 16 characters and keep it
+an initial admin account through `ADMIN_PASSWORD` or `admin:configure`; use a
+unique password of at least 16 characters and keep it
 out of Git. Set `HOST` explicitly only when you intend to expose the server.
 
 Security protections include:

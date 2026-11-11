@@ -4,7 +4,8 @@ The Node backend reads website content from PostgreSQL and stores admin edits
 there. Existing `backend/data/*.json` content is imported once without changing
 the original files. Visitor registration/login, comments, and contact forms are
 not active, and no default application accounts were created. The existing
-local admin password/session mechanism is unchanged. GitHub Pages remains a
+local admin login now uses a persistent account in PostgreSQL; email OTP recovery
+is available after [private configuration](ADMIN-RECOVERY.md). GitHub Pages remains a
 static deployment using exported JSON.
 
 ## Project-local setup
@@ -47,7 +48,7 @@ the Node backend; a custom domain alone does not provide backend hosting.
 ## Connect to another database
 
 Install dependencies with `npm ci`. Node 22 in `.nvmrc` is recommended. The
-PostgreSQL driver also works with the project's existing Node 18 server.
+Node.js 22 or newer is required by the current server and patched dependencies.
 You need an existing PostgreSQL database and private connection credentials;
 no hosted database was purchased/provisioned by this change.
 
@@ -89,6 +90,7 @@ connection/query timeouts and a maximum of five connections.
 | `portfolio.contact_messages` | Name/email/subject/body, creation time, inbox state defaulting to new. |
 | `portfolio.schema_migrations` | Applied versions/checksums. |
 | `portfolio.site_content` | Public portfolio content as one JSONB document, updated transactionally. |
+| `portfolio.admin_account` | Private admin credentials, recovery address, version for session revocation, and expiring hashed OTP state. |
 
 ## Editing and publishing
 
@@ -181,7 +183,7 @@ The first hosted run remains pending a push.
 
 ## Verification on 11 November 2026
 
-**89 tests passed with none skipped** using the isolated PostgreSQL 16.15
+**99 tests passed with none skipped** using the isolated PostgreSQL 16.15
 cluster: concurrent/idempotent migrations, constraints and moderation defaults,
 bound values, migration tampering, refusal to adopt unrelated tables, CLI
 checks, private backup/restore, and the existing website/security regressions.
@@ -189,7 +191,11 @@ Syntax and static build checks passed. The persistent local cluster was also
 checked for restricted application permissions, repeatable setup, successful
 backup, and a stop/start cycle. Tests also cover PostgreSQL-backed public APIs,
 authenticated admin saves, cross-connection stale edit rejection, import
-preservation, and rollback on backup failure. No visitor account UI was added.
+preservation, rollback on backup failure, OTP recovery and replay/guessing
+protection, persistent admin credentials, session revocation, and the five-minute
+idle timeout with activity renewal and hidden-page expiry. No visitor
+account UI was added. Recovery email delivery uses a fake sender in tests;
+real Gmail delivery requires private configuration and an inbox test.
 
 References: [node-postgres connections](https://node-postgres.com/features/connecting),
 [TLS configuration](https://node-postgres.com/features/ssl),

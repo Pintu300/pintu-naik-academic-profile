@@ -5,7 +5,7 @@ const publicFiles = new Set([
   "teaching.html", "achievements.html", "education.html", "cv.html",
   "admin.html", "login.html", "styles.css", "script.js", "catalog.js",
   "catalog-ui.js", "analytics.js", "visitor-stats.js", "admin.js",
-  "login.js", "editor-model.js"
+  "login.js", "editor-model.js", "recovery.html", "recovery.js"
 ]);
 const assetExtensions = new Set([".avif", ".gif", ".ico", ".jpeg", ".jpg", ".png", ".svg", ".webp", ".pdf", ".woff", ".woff2", ".ttf", ".otf"]);
 

@@ -1,6 +1,58 @@
 const assert = require("node:assert/strict");
 const { test } = require("node:test");
-const { editorSections, editorField, updateEditorRecord } = require("./editor-model");
+const { editorSections, editorField, updateEditorRecord, createEditorSessionTracker } = require("./editor-model");
+
+const sessionFixture = () => {
+  let time = 0;
+  let visible = true;
+  let expired = 0;
+  let renewed = 0;
+  let callback;
+  const tracker = createEditorSessionTracker({
+    now: () => time, isVisible: () => visible,
+    setTimer: (next) => { callback = next; return 1; }, clearTimer: () => {},
+    onActivity: () => { renewed++; }, onIdle: () => { expired++; }
+  });
+  tracker.start();
+  return { tracker, advance: (ms) => { time += ms; }, hide: () => { visible = false; }, show: () => { visible = true; },
+    tick: () => callback(), state: () => ({ expired, renewed }) };
+};
+
+test("editor activity extends idle time without letting timer ticks or hidden pages renew sessions", () => {
+  const session = sessionFixture();
+  session.advance(40000);
+  session.tracker.activity();
+  assert.deepEqual(session.state(), { expired: 0, renewed: 1 });
+  session.advance(1000);
+  session.tracker.activity();
+  assert.equal(session.state().renewed, 1);
+  session.hide();
+  session.advance(4 * 60000);
+  session.tracker.activity();
+  session.tick();
+  assert.deepEqual(session.state(), { expired: 0, renewed: 1 });
+  session.advance(60000);
+  session.tick();
+  assert.deepEqual(session.state(), { expired: 1, renewed: 1 });
+  session.show();
+  session.tracker.activity();
+  assert.deepEqual(session.state(), { expired: 1, renewed: 1 });
+});
+
+test("returning after five idle minutes expires before interaction can renew the session", () => {
+  const session = sessionFixture();
+  session.advance(5 * 60000);
+  session.tracker.activity();
+  assert.deepEqual(session.state(), { expired: 1, renewed: 0 });
+  session.tracker.start();
+  session.advance(40000);
+  session.tracker.activity();
+  assert.deepEqual(session.state(), { expired: 1, renewed: 1 });
+  session.tracker.stop();
+  session.advance(10 * 60000);
+  session.tick();
+  assert.deepEqual(session.state(), { expired: 1, renewed: 1 });
+});
 
 test("form edits preserve extra stored fields and leave original data unchanged", () => {
   const original = { title: "Old", customField: "Keep me", url: "https://example.com" };

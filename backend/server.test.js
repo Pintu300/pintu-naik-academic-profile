@@ -601,16 +601,41 @@ test("logout requires the session CSRF token and invalidates the cookie", async 
 
 test("sessions expire after inactivity and cannot outlive the absolute timeout", async () => {
   const request = () => fetch(`${baseUrl}/api/admin/site-data`, { headers: { Cookie: adminCookie } });
-  testTime += 30 * 60 * 1000;
+  testTime += 5 * 60 * 1000;
   assert.equal((await request()).status, 401);
   const signedIn = await login();
   adminCookie = signedIn.headers.get("set-cookie").split(";")[0];
-  for (let count = 0; count < 16; count++) {
-    testTime += 29 * 60 * 1000;
+  for (let count = 0; count < 119; count++) {
+    testTime += 4 * 60 * 1000;
     assert.equal((await request()).status, 200);
   }
-  testTime += 16 * 60 * 1000;
+  testTime += 4 * 60 * 1000;
   assert.equal((await request()).status, 401);
+});
+
+test("trusted editor activity renews the five-minute idle window and cannot revive expired sessions", async () => {
+  const activity = (extra = {}) => fetch(`${baseUrl}/api/auth/activity`, {
+    method: "POST", headers: { Cookie: adminCookie, "X-Requested-With": "admin-editor", "X-CSRF-Token": csrfToken, ...extra }
+  });
+  assert.equal((await fetch(`${baseUrl}/api/auth/activity`)).status, 405);
+  assert.equal((await activity({ Cookie: "" })).status, 401);
+  assert.equal((await activity({ "X-CSRF-Token": "wrong" })).status, 403);
+  assert.equal((await activity({ Origin: "https://untrusted.invalid" })).status, 403);
+  testTime += 4 * 60 * 1000;
+  assert.equal((await activity()).status, 200);
+  testTime += 4 * 60 * 1000;
+  assert.equal((await fetch(`${baseUrl}/api/admin/site-data`, { headers: { Cookie: adminCookie } })).status, 200);
+  testTime += 5 * 60 * 1000;
+  assert.equal((await activity()).status, 401);
+});
+
+test("invalid activity requests cannot extend an idle admin session", async () => {
+  testTime += 4 * 60 * 1000;
+  assert.equal((await fetch(`${baseUrl}/api/auth/activity`, { method: "POST", headers: {
+    Cookie: adminCookie, "X-Requested-With": "admin-editor", "X-CSRF-Token": "wrong"
+  } })).status, 403);
+  testTime += 60 * 1000;
+  assert.equal((await fetch(`${baseUrl}/admin.html`, { headers: { Cookie: adminCookie }, redirect: "manual" })).status, 303);
 });
 
 test("logging in rotates the session and prevents cross-session CSRF token reuse", async () => {

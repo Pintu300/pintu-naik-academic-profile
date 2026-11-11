@@ -7,12 +7,14 @@ let revision = "";
 let saving = false;
 let sessionExpired = false;
 let csrfToken = "";
+let sessionTracker;
 const fieldGroup = document.querySelector("[data-editor-fields]");
 const saveButtons = [...document.querySelectorAll("[data-editor-save], [data-editor-form] [type='submit']")];
 const sessionRecovery = document.querySelector("[data-editor-session]");
 saveButtons.forEach((button) => { button.disabled = true; });
 const requireSignIn = (response) => {
   if (response.status !== 401) return false;
+  sessionTracker?.stop();
   if (siteData) {
     sessionExpired = true;
     sessionRecovery.hidden = false;
@@ -258,6 +260,29 @@ const readForm = () => {
 form.addEventListener("input", (event) => {
   if (!event.target.matches("[data-editor-search], [data-editor-restore]")) dirty = true;
 });
+sessionTracker = createEditorSessionTracker({
+  isVisible: () => document.visibilityState === "visible",
+  onActivity: async () => {
+    if (!csrfToken || sessionExpired) return;
+    try {
+      const response = await fetch("/api/auth/activity", { method: "POST",
+        headers: { "X-Requested-With": "admin-editor", "X-CSRF-Token": csrfToken }, signal: AbortSignal.timeout(10000) });
+      requireSignIn(response);
+    } catch { /* The server still enforces expiry if connectivity is lost. */ }
+  },
+  onIdle: () => {
+    requireSignIn({ status: 401 });
+    void fetch("/api/auth/logout", { method: "POST", keepalive: true,
+      headers: { "X-Requested-With": "admin-editor", "X-CSRF-Token": csrfToken }
+    }).catch(() => {});
+    if (!dirty) window.location.replace("/login.html");
+  }
+});
+for (const name of ["input", "keydown", "pointerdown", "scroll"]) {
+  document.addEventListener(name, (event) => { if (event.isTrusted) sessionTracker.activity(); }, { capture: true, passive: true });
+}
+document.addEventListener("visibilitychange", () => { sessionTracker.check(); });
+window.addEventListener("pageshow", () => { sessionTracker.check(); });
 window.addEventListener("beforeunload", (event) => {
   if (!dirty) return;
   event.preventDefault();
@@ -273,6 +298,7 @@ const loadData = async () => {
   }
 
   csrfToken = response.headers.get("X-CSRF-Token") || "";
+  sessionTracker.start();
   revision = response.headers.get("ETag") || "";
   siteData = await response.json();
   fillForm();
@@ -343,6 +369,7 @@ document.querySelector("[data-editor-reconnect]").addEventListener("click", asyn
     if (!nextToken || !savedRevision) throw new Error("Could not verify the session. Download your draft before reloading.");
     csrfToken = nextToken;
     sessionExpired = false;
+    sessionTracker.start();
     sessionRecovery.hidden = true;
     saveButtons.forEach((save) => { save.disabled = false; });
     // Keep the draft's original revision so reconnecting cannot bypass conflicts.

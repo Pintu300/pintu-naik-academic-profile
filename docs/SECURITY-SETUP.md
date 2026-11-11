@@ -6,8 +6,12 @@ browser JavaScript, public JSON data, or `frontend/assets/`.
 
 ## What is already protected
 
-- Admin login reads `ADMIN_PASSWORD` from the server environment. Without it,
-  login is disabled. There is no built-in production password.
+- `ADMIN_PASSWORD` seeds an absent PostgreSQL admin account. Once created,
+  admin credentials persist as a salted scrypt hash and are not overwritten by
+  environment values. There is no built-in production password. Run
+  `npm run admin:configure` to set/reset the local admin and configure Gmail OTP
+  recovery; see [Admin recovery](ADMIN-RECOVERY.md). Private mail settings are
+  stored only in ignored `backend/private/admin-recovery.json` with mode 0600.
 - Password verification uses scrypt. Random session IDs and CSRF tokens are
   generated on the server and kept in memory, not in repository files.
 - Session cookies are HttpOnly and SameSite=Strict. HTTPS configuration enables

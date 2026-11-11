@@ -87,7 +87,7 @@ const checkDatabase = async (pool) => {
   validateHistory(rows, true);
   const tables = await pool.query("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = $1", ["portfolio"]);
   const names = tables.rows.map((row) => row.tablename);
-  for (const name of ["users", "comments", "contact_messages", "schema_migrations", "site_content"]) {
+  for (const name of ["users", "comments", "contact_messages", "schema_migrations", "site_content", "admin_account"]) {
     if (!names.includes(name)) throw new DatabaseMigrationError("Expected PostgreSQL tables are missing.");
   }
 };

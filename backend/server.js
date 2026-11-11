@@ -464,7 +464,7 @@ const serveStatic = async (request, response, frontendDir, pathname) => {
   }
 
   const contentType = MIME_TYPES[path.extname(filePath).toLowerCase()] || "application/octet-stream";
-  if (!filePath.endsWith(".html") && !["/admin.js", "/editor-model.js", "/login.js"].includes(pathname)) {
+  if (!filePath.endsWith(".html") && !["/admin.js", "/editor-model.js", "/login.js", "/recovery.js"].includes(pathname)) {
     const tag = `W/"${createHash("sha256").update(file).digest("hex")}"`;
     response.setHeader("ETag", tag);
     response.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
@@ -526,12 +526,15 @@ const createServer = ({
   backupRetention = Number(process.env.BACKUP_RETENTION || 30),
   maxBodyBytes = MAX_BODY_BYTES,
   contentStore,
+  accountStore,
+  recoveryMailer,
+  isReady = () => true,
   now = Date.now
 } = {}) => {
   if (adminOrigin && (!/^https?:\/\//.test(adminOrigin) || new URL(adminOrigin).origin !== adminOrigin)) {
     throw new Error("ADMIN_ORIGIN must be an exact HTTP(S) origin without a trailing slash.");
   }
-  const auth = createAdminAuth({ adminUser, adminPassword, adminOrigin, sendJson, readRequestBody, now });
+  const auth = createAdminAuth({ adminUser, adminPassword, adminOrigin, sendJson, readRequestBody, now, accountStore, recoveryMailer });
   const backups = createBackupStore({
     directory: backupDirectory, retention: backupRetention, now,
     forbiddenDirectories: [frontendDir, dataDir, path.join(ROOT_DIR, "dist")]
@@ -569,6 +572,10 @@ const createServer = ({
 
   const server = http.createServer(async (request, response) => {
     try {
+      if (!isReady()) {
+        sendJson(request, response, 503, { error: "Server is starting. Please try again shortly." });
+        return;
+      }
       let pathname;
       try {
         if (!request.url.startsWith("/") || request.url.startsWith("//")) throw new Error();
@@ -582,7 +589,7 @@ const createServer = ({
       const requestUrl = { pathname };
       if (await auth.handleAuth(request, response, pathname)) return;
       if ((["/admin.html", "/admin.js"].includes(pathname) || pathname.startsWith("/api/admin/"))
-        && !auth.authorize(request, response, pathname)) return;
+        && !await auth.authorize(request, response, pathname)) return;
 
       if (requestUrl.pathname.startsWith("/api/")) {
         await serveApi(request, response, requestUrl.pathname, options);
@@ -645,9 +652,14 @@ const startServer = () => {
   const host = process.env.HOST || "127.0.0.1";
   const { createDatabasePool } = require("./database");
   const { createContentStore } = require("./content-store");
+  const { createAdminAccount } = require("./admin-account");
+  const { readRecoverySettings, createRecoveryMailer } = require("./recovery-mail");
+  const settings = readRecoverySettings();
   const pool = createDatabasePool();
   const contentStore = createContentStore(pool);
-  const server = createServer({ contentStore });
+  const accountStore = createAdminAccount(pool, { secret: settings?.secret });
+  let ready = false;
+  const server = createServer({ contentStore, accountStore, recoveryMailer: createRecoveryMailer(settings), isReady: () => ready });
   let backupTimer;
   const automaticBackup = () => server.createBackup().then(() => {
     console.log("Automatic content backup completed.");
@@ -659,26 +671,35 @@ const startServer = () => {
     if (error.code === "EADDRINUSE") {
       console.error(`Cannot start: ${host}:${port} is already in use.`);
       console.error("Stop the existing server with Ctrl+C in its terminal, or choose another port:");
-      console.error("PORT=3001 npm start (with ADMIN_PASSWORD set to enable admin login)");
+      console.error("PORT=3001 npm start (your existing admin account is retained)");
     } else {
       console.error(`Could not start the server: ${error.message}`);
     }
     process.exitCode = 1;
   });
 
-  const listen = () => server.listen(port, host, () => {
+  const listen = () => server.listen(port, host, async () => {
+    try { await prepareAdmin(); }
+    catch {
+      console.error("Cannot initialize admin storage. Check database migrations and private settings.");
+      process.exitCode = 1;
+      server.close();
+      return;
+    }
+    ready = true;
     console.log(`Server running at http://${host}:${server.address().port}`);
     console.log(`Frontend served from ${FRONTEND_DIR}`);
     console.log("Website content storage: PostgreSQL.");
-    if (!process.env.ADMIN_PASSWORD) {
-      console.warn("Admin editor disabled. Set ADMIN_PASSWORD to enable /admin.html.");
-    }
     void automaticBackup();
     backupTimer = setInterval(() => { void automaticBackup(); }, 24 * 60 * 60 * 1000);
     backupTimer.unref();
   });
+  const prepareAdmin = async () => {
+    if (process.env.ADMIN_PASSWORD) await accountStore.provision({ username: process.env.ADMIN_USER || "admin", password: process.env.ADMIN_PASSWORD });
+    if (!await accountStore.read()) console.warn("Admin editor disabled. Set ADMIN_PASSWORD for initial setup, or run npm run admin:configure.");
+  };
   contentStore.load().then(listen).catch(async () => {
-    console.error("Cannot start: PostgreSQL content unavailable. Run db:start, db:init, and db:import; check private connection settings.");
+    console.error("Cannot start: PostgreSQL content or admin storage unavailable. Run db:start, db:init, and db:import; check private connection settings.");
     await pool.end();
     process.exitCode = 1;
   });

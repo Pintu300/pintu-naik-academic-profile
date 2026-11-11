@@ -100,7 +100,7 @@ const prepareRoles = async (state) => {
         await migrateDatabase(owner);
         await owner.query('REVOKE CREATE ON SCHEMA public FROM PUBLIC; REVOKE ALL ON DATABASE academic_portfolio FROM PUBLIC; GRANT CONNECT ON DATABASE academic_portfolio TO "portfolio_app"');
         await owner.query('GRANT USAGE ON SCHEMA portfolio TO "portfolio_app"; GRANT SELECT ON portfolio.schema_migrations TO "portfolio_app"');
-        await owner.query('GRANT SELECT, INSERT, UPDATE, DELETE ON portfolio.users, portfolio.comments, portfolio.contact_messages, portfolio.site_content TO "portfolio_app"; GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA portfolio TO "portfolio_app"');
+        await owner.query('GRANT SELECT, INSERT, UPDATE, DELETE ON portfolio.users, portfolio.comments, portfolio.contact_messages, portfolio.site_content, portfolio.admin_account TO "portfolio_app"; GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA portfolio TO "portfolio_app"');
         await owner.query('ALTER DEFAULT PRIVILEGES FOR ROLE "portfolio_owner" IN SCHEMA portfolio GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO "portfolio_app"; ALTER DEFAULT PRIVILEGES FOR ROLE "portfolio_owner" IN SCHEMA portfolio GRANT USAGE, SELECT ON SEQUENCES TO "portfolio_app"');
       } finally { await owner.end(); }
     }

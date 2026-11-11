@@ -16,3 +16,10 @@ test("project editor supports contributions, results, code, and demo links", () 
   assert.equal(fields.find((field) => field.name === "title").required, true);
   assert.equal(fields.find((field) => field.name === "codeUrl").kind, "url");
 });
+
+test("publication editor accepts an optional code repository URL", () => {
+  const field = editorSections.publications.fields.map(editorField).find((item) => item.name === "codeUrl");
+  assert.equal(field.kind, "url");
+  assert.equal(field.required, false);
+  assert.equal(updateEditorRecord({ title: "Paper" }, { codeUrl: " https://example.com/code " }).codeUrl, "https://example.com/code");
+});

@@ -2,7 +2,7 @@
 const editorSections = {
   research: { label: "Research interests", fields: ["title!", "description:long"] },
   updates: { label: "Recent updates", fields: ["title!", "date", "description:long"] },
-  publications: { label: "Publications", fields: ["title!", "authors", "venue", "year", "type:publication", "abstract:long", "keywords", "publisher", "pages", "volume", "number", "status", "url:url", "doi:url", "pdf", "journalQuartile", "acceptanceRate"] },
+  publications: { label: "Publications", fields: ["title!", "authors", "venue", "year", "type:publication", "abstract:long", "keywords", "publisher", "pages", "volume", "number", "status", "url:url", "doi:url", "pdf", "codeUrl:url", "journalQuartile", "acceptanceRate"] },
   projects: { label: "Projects", fields: ["title!", "description:long", "contribution:long", "results:long", "stack", "url:url", "codeUrl:url", "demoUrl:url"] },
   achievements: { label: "Achievements and photos", fields: ["title!", "category", "date", "issuer", "description:long", "details:long", "image!", "alt!", "url:url"] },
   education: { label: "Education", fields: ["degree!", "institution", "period", "result", "details:long", "institutionLogo"] },

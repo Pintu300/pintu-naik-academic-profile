@@ -239,6 +239,7 @@ const renderPublications = () => {
               ${externalLink(item.url, "Publication")}
               ${publicationPdfLink(item.pdf)}
               ${externalLink(item.doi, "DOI")}
+              ${publicationCodeLink(item)}
               ${interactive ? `<button class="record-action" type="button" data-cite="${AcademicCatalog.publicationKey(item)}" aria-label="Cite ${escapeHtml(item.title || "publication")}">Cite / BibTeX</button>` : ""}
             </div>
             ${interactive && item.abstract ? `<details class="publication-abstract"><summary>Read abstract</summary><p>${escapeHtml(item.abstract)}</p></details>` : ""}
@@ -517,6 +518,14 @@ const externalLink = (url, label) => {
   return `<a href="${escapeHtml(url)}" target="_blank" rel="noreferrer">${escapeHtml(label)}</a>`;
 };
 
+const publicationCodeLink = (item) => {
+  const icon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m8 7-5 5 5 5m8-10 5 5-5 5m-3-13-2 16"/></svg>';
+  if (!safeHttpUrl(item.codeUrl)) {
+    return `<span class="publication-code publication-code--unavailable" title="No public code link has been provided.">${icon}<span>Code</span><small>Not linked</small></span>`;
+  }
+  return `<a class="publication-code" href="${escapeHtml(item.codeUrl)}" target="_blank" rel="noopener noreferrer" aria-label="Code for ${escapeHtml(item.title || "publication")}">${icon}<span>Code</span></a>`;
+};
+
 const publicationPdfLink = (url) => {
   if (typeof url !== "string") return "";
   if (safeHttpUrl(url)) return externalLink(url, "PDF");
@@ -777,7 +786,7 @@ const loadAcademicProfile = async () => {
           <h3>${escapeHtml(item.title || "Publication")}</h3>
           ${item.authors ? `<p>${escapeHtml(item.authors)}</p>` : ""}
           ${item.venue ? `<p class="academic-record__venue">${escapeHtml(item.venue)}</p>` : ""}
-          <div class="academic-record__links">${externalLink(item.url, "Publication")}${externalLink(item.doi, "DOI")}${publicationPdfLink(item.pdf)}</div>
+          <div class="academic-record__links">${externalLink(item.url, "Publication")}${externalLink(item.doi, "DOI")}${publicationPdfLink(item.pdf)}${publicationCodeLink(item)}</div>
         </div>
       </article>
     `, "Publications will be added here.");

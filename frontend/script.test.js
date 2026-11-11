@@ -142,6 +142,24 @@ test("homepage selected work excludes submissions and shows at most three items"
   assert.ok(!html.includes("SAFE-RT"));
 });
 
+test("publication code boxes support safe links and informative placeholders in full and selected lists", async () => {
+  const publications = [
+    { title: 'Code paper "A"', year: "2026", codeUrl: "https://example.com/research-code" },
+    { title: "Paper without code", year: "2026" },
+    { title: "Unsafe code URL", year: "2026", codeUrl: "javascript:alert(1)" }
+  ];
+  const page = await loadPage({ selectors: ["[data-publications-category]", "[data-selected-publications]"], overrides: { publications } });
+  for (const selector of ["[data-publications-category]", "[data-selected-publications]"]) {
+    const html = page.nodes.get(selector)[0].innerHTML;
+    assert.equal((html.match(/class="publication-code(?: |")/g) || []).length, 3);
+    assert.ok(html.includes('href="https://example.com/research-code"'));
+    assert.ok(html.includes('rel="noopener noreferrer"'));
+    assert.ok(html.includes("Code for Code paper &quot;A&quot;"));
+    assert.equal((html.match(/Not linked/g) || []).length, 2);
+    assert.ok(!html.includes("javascript:"));
+  }
+});
+
 
 test("gallery dialog traps focus, disables the background, and restores focus on Escape", async () => {
   const page = await loadPage({ modal: true });

@@ -2328,6 +2328,37 @@ body.cv-site {
   flex-wrap: wrap;
   gap: 1rem;
   margin-top: 0.65rem;
+  align-items: center;
+}
+
+.academic-record__links .publication-code {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid #cbd9f2;
+  border-radius: 6px;
+  background: #f4f7ff;
+  color: #2f4e96;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.4;
+  text-decoration: none;
+}
+.publication-code svg { width: 16px; height: 16px; flex: none; }
+.academic-record__links a.publication-code:hover {
+  border-color: #3656a8;
+  background: #eaf0ff;
+}
+.academic-record__links .publication-code--unavailable {
+  border-color: #d9e2ed;
+  background: #f8fafc;
+  color: #64748b;
+}
+.publication-code small { font-size: 0.68rem; font-weight: 500; }
+
+@media print {
+  .cv-site .publication-code--unavailable { display: none; }
 }
 
 .academic-record__links a {

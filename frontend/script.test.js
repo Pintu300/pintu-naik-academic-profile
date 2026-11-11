@@ -36,7 +36,7 @@ class Element {
 const loadPage = async ({ selectors = [], cv = false, failed = [], overrides = {}, modal = false } = {}) => {
   const nodes = new Map(selectors.map((selector) => [selector, [new Element(selector.includes("titles") ? "UL" : "DIV")]]));
   const fields = ["name", "title", "institution", "summary", "email", "academicService"].map((key) => new Element("SPAN", { profile: key }));
-  const links = ["email", "linkedin", "department"].map((key) => new Element("A", { profileLink: key }));
+  const links = ["email", "linkedin", "department", "scholar"].map((key) => new Element("A", { profileLink: key, ...(key === "scholar" ? { profileOptional: "" } : {}) }));
   nodes.set("[data-profile]", fields);
   nodes.set("[data-profile-link]", links);
   const main = new Element("MAIN");
@@ -104,6 +104,22 @@ test("CV identity, contact details, interests, and education follow shared conte
   assert.ok(!education.includes("Classes 1–7"));
   assert.equal(page.print.disabled, false);
   assert.equal(page.errors.length, 0);
+});
+
+test("saved Scholar links are displayed, while missing and unsafe optional links stay hidden", async () => {
+  const scholar = "https://scholar.google.com/citations?user=researcher";
+  const profile = { ...siteData.profile, links: { ...siteData.profile.links, scholar } };
+  const page = await loadPage({ overrides: { profile } });
+  assert.equal(page.links[3].href, scholar);
+  assert.equal(page.links[3].hidden, false);
+  for (const value of ["", "javascript:alert(1)"]) {
+    const absent = await loadPage({ overrides: { profile: { ...profile, links: { ...profile.links, scholar: value } } } });
+    assert.equal(absent.links[3].hidden, true);
+  }
+  for (const name of ["index.html", "cv.html", "publications.html"]) {
+    const html = fs.readFileSync(path.join(__dirname, name), "utf8");
+    assert.match(html, /data-profile-link="scholar"[^>]*data-profile-optional/);
+  }
 });
 
 test("a publications page loads only profile and publications", async () => {

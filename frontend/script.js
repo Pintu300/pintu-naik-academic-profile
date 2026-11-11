@@ -563,6 +563,9 @@ const setProfile = (profile) => {
 
   document.querySelectorAll("[data-profile-link], [data-contact-link]").forEach((link) => {
     const key = link.dataset.profileLink || link.dataset.contactLink;
+    if (link.dataset.profileOptional !== undefined) {
+      link.hidden = !safeHttpUrl(profile.links?.[key]);
+    }
     if (key === "email") {
       link.href = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email || "") ? `mailto:${profile.email}` : "#";
       const label = link.querySelector("strong");

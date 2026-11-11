@@ -593,6 +593,9 @@ test("logout requires the session CSRF token and invalidates the cookie", async 
   assert.equal(response.status, 200);
   assert.match(response.headers.get("set-cookie"), /Max-Age=0/);
   assert.equal((await fetch(`${baseUrl}/api/admin/site-data`, { headers: { Cookie: adminCookie } })).status, 401);
+  const editor = await fetch(`${baseUrl}/admin.html`, { headers: { Cookie: adminCookie }, redirect: "manual" });
+  assert.equal(editor.status, 303);
+  assert.equal(editor.headers.get("location"), "/login.html");
   assert.equal((await logout(csrfToken)).status, 401);
 });
 

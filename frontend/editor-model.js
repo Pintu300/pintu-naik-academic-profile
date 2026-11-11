@@ -1,4 +1,4 @@
-/* Shared form definitions: data stays in the existing JSON files. */
+/* Shared form definitions for the website content document. */
 const editorSections = {
   research: { label: "Research interests", fields: ["title!", "description:long"] },
   updates: { label: "Recent updates", fields: ["title!", "date", "description:long"] },

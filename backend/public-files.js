@@ -12,7 +12,9 @@ const assetExtensions = new Set([".avif", ".gif", ".ico", ".jpeg", ".jpg", ".png
 const isSensitivePath = (filename) => filename.replaceAll("\\", "/").split("/").some((part) =>
   /^\.env(?:\.|$)/i.test(part) && part !== ".env.example"
   || /^\.dev\.vars(?:\.|$)/i.test(part)
-  || /\.(?:pem|key|p12|pfx|keystore|kdbx|bak|sql|sqlite|db)$/i.test(part)
+  || /\.(?:pem|key|p12|pfx|keystore|kdbx|bak|sql|pgdump|dump)$/i.test(part)
+  || /\.(?:sqlite3?|db)(?:-(?:wal|shm|journal))?$/i.test(part)
+  || part.toLowerCase() === "private"
   || /(?:^|[._-])(?:secrets?|credentials?|service[-_]?accounts?|backups?|drafts?)(?:[._-]|$)/i.test(part)
 );
 

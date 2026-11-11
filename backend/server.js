@@ -525,6 +525,7 @@ const createServer = ({
   backupDirectory = process.env.BACKUP_DIR || path.join(path.dirname(dataDir), "backups"),
   backupRetention = Number(process.env.BACKUP_RETENTION || 30),
   maxBodyBytes = MAX_BODY_BYTES,
+  contentStore,
   now = Date.now
 } = {}) => {
   if (adminOrigin && (!/^https?:\/\//.test(adminOrigin) || new URL(adminOrigin).origin !== adminOrigin)) {
@@ -541,15 +542,9 @@ const createServer = ({
     pendingOperation = result.catch(() => {});
     return result;
   };
-  const loadData = () => serialize(() => readSiteData(dataDir));
-  const loadResource = (resource) => serialize(() => readJsonFile(dataDir, DATA_FILES[resource]));
-  const saveData = (data, expectedRevision) => serialize(async () => {
-    const current = await readSiteData(dataDir);
-    if (dataRevision(current) !== expectedRevision) {
-      const error = new Error("Content changed since you opened the editor. Download your draft, then reload the saved content and apply your edits again.");
-      error.statusCode = 412;
-      throw error;
-    }
+  const loadData = () => serialize(() => contentStore ? contentStore.load() : readSiteData(dataDir));
+  const loadResource = (resource) => serialize(async () => contentStore ? (await contentStore.load())[resource] : readJsonFile(dataDir, DATA_FILES[resource]));
+  const backupBeforeSave = async (current) => {
     try { await backups.create(current); }
     catch {
       const error = new Error("Automatic backup failed. Save cancelled; existing website content is unchanged. Check the backup directory and available disk space.");
@@ -557,6 +552,16 @@ const createServer = ({
       error.statusCode = 503;
       throw error;
     }
+  };
+  const saveData = (data, expectedRevision) => serialize(async () => {
+    if (contentStore) return contentStore.save(data, expectedRevision, backupBeforeSave);
+    const current = await readSiteData(dataDir);
+    if (dataRevision(current) !== expectedRevision) {
+      const error = new Error("Content changed since you opened the editor. Download your draft, then reload the saved content and apply your edits again.");
+      error.statusCode = 412;
+      throw error;
+    }
+    await backupBeforeSave(current);
     await writeSiteData(dataDir, data);
     return dataRevision(await readSiteData(dataDir));
   });
@@ -627,7 +632,7 @@ const createServer = ({
   server.keepAliveTimeout = 5_000;
   server.maxRequestsPerSocket = 100;
   server.createBackup = () => serialize(async () => {
-    const current = await readSiteData(dataDir);
+    const current = contentStore ? await contentStore.load() : await readSiteData(dataDir);
     const error = validateSiteData(current);
     if (error) throw new Error("Cannot back up invalid website content.");
     return backups.create(current);
@@ -638,7 +643,11 @@ const createServer = ({
 const startServer = () => {
   const port = Number(process.env.PORT) || 3000;
   const host = process.env.HOST || "127.0.0.1";
-  const server = createServer();
+  const { createDatabasePool } = require("./database");
+  const { createContentStore } = require("./content-store");
+  const pool = createDatabasePool();
+  const contentStore = createContentStore(pool);
+  const server = createServer({ contentStore });
   let backupTimer;
   const automaticBackup = () => server.createBackup().then(() => {
     console.log("Automatic content backup completed.");
@@ -657,9 +666,10 @@ const startServer = () => {
     process.exitCode = 1;
   });
 
-  server.listen(port, host, () => {
+  const listen = () => server.listen(port, host, () => {
     console.log(`Server running at http://${host}:${server.address().port}`);
     console.log(`Frontend served from ${FRONTEND_DIR}`);
+    console.log("Website content storage: PostgreSQL.");
     if (!process.env.ADMIN_PASSWORD) {
       console.warn("Admin editor disabled. Set ADMIN_PASSWORD to enable /admin.html.");
     }
@@ -667,7 +677,13 @@ const startServer = () => {
     backupTimer = setInterval(() => { void automaticBackup(); }, 24 * 60 * 60 * 1000);
     backupTimer.unref();
   });
-  server.once("close", () => clearInterval(backupTimer));
+  contentStore.load().then(listen).catch(async () => {
+    console.error("Cannot start: PostgreSQL content unavailable. Run db:start, db:init, and db:import; check private connection settings.");
+    await pool.end();
+    process.exitCode = 1;
+  });
+  server.once("error", () => { void pool.end(); });
+  server.once("close", () => { clearInterval(backupTimer); void pool.end(); });
 
   const shutdown = (signal) => {
     console.log(`${signal} received; closing server.`);
@@ -688,4 +704,4 @@ if (require.main === module) {
   startServer();
 }
 
-module.exports = { createServer, startServer, validateSiteData };
+module.exports = { createServer, startServer, validateSiteData, readSiteData, writeSiteData };

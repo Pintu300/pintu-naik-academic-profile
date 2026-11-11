@@ -51,7 +51,7 @@ test("static publication excludes private files even when placed in frontend ass
     const frontendDirectory = path.join(temporary, "frontend");
     const outputDirectory = path.join(temporary, "public");
     await fs.cp(path.join(__dirname, "../frontend"), frontendDirectory, { recursive: true });
-    const privateNames = [".env", "credentials.json", "service-account.json", "academic-site-backup-today.json", "backup-notes.pdf", "signing.pfx", "extra.json"];
+    const privateNames = [".env", "credentials.json", "service-account.json", "academic-site-backup-today.json", "backup-notes.pdf", "signing.pfx", "extra.json", "website.sqlite", "website.sqlite-wal", "website.sqlite3-shm", "website.db-journal", "website.pgdump", "website.dump"];
     for (const name of privateNames) await fs.writeFile(path.join(frontendDirectory, "assets", name), "Synthetic private fixture");
     await buildStatic({ outputDirectory, frontendDirectory });
     for (const name of privateNames) await assert.rejects(fs.access(path.join(outputDirectory, "assets", name)), { code: "ENOENT" });

@@ -54,6 +54,28 @@ README.md                 Project documentation
 
 ## Development setup
 
+The Node backend uses PostgreSQL for website content and admin saves. Tables
+for future accounts, comments, and contact messages are also prepared; those
+features are not enabled. With PostgreSQL server/client tools installed, set up
+and import the initial public content:
+
+```bash
+npm run db:setup
+npm run db:import
+npm run db:status
+npm run db:check
+npm run db:backup
+```
+
+The setup generates private credentials, binds only to loopback, and separates
+migration-owner and application permissions. After a reboot, run
+`npm run db:start`; use `npm run db:stop` to stop only this project's database. Explicit
+`DATABASE_URL` and `DATABASE_MIGRATION_URL` settings override local credentials.
+No hosted/production database was created. The foundation was verified against
+an isolated temporary PostgreSQL server. Run `npm run test:db` for database tests
+or `npm run test:all` for the complete suite with an isolated local cluster.
+See [Database setup and limitations](docs/DATABASE.md).
+
 Node.js 22 is recommended for development and is configured in `.nvmrc` and
 GitHub Actions. Install the locked development tools with `npm ci`. The basic
 local server still supports Node 18, but regenerating images requires Node
@@ -68,6 +90,9 @@ Start the backend server:
 ```bash
 npm start
 ```
+
+After rebooting, run `npm run db:start` before `npm start`. Admin authentication
+still uses your private `ADMIN_PASSWORD` server setting.
 
 Open the website:
 
@@ -92,6 +117,12 @@ npm run check
 GitHub Pages serves static files and does not run the Node.js backend. This
 repository includes a GitHub Actions workflow that publishes the frontend and
 its JSON content files whenever you push to the `main` or `master` branch.
+After editing content in the local PostgreSQL-backed admin editor, run
+`npm run db:export`, review `git diff`, and commit/push the exported
+`backend/data/*.json` files. `db:import` seeds an empty database only and will
+not overwrite existing database edits. Direct JSON edits do not automatically
+update PostgreSQL. The static build includes public content only, never
+database credentials or visitor account/contact tables.
 
 1. Push this project to a public GitHub repository.
 2. In the repository, open **Settings → Pages** and set the build and

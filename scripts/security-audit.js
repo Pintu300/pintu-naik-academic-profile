@@ -9,13 +9,15 @@ const rules = [
   ["GitHub token", /\b(?:gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{40,})\b/],
   ["Google API key", /\bAIza[A-Za-z0-9_-]{35}\b/],
   ["AWS access identifier", /\b(?:AKIA|ASIA)[A-Z0-9]{16}\b/],
-  ["service-account JSON", /"type"\s*:\s*"service_account"/]
+  ["service-account JSON", /"type"\s*:\s*"service_account"/],
+  ["database connection credentials", /\bpostgres(?:ql)?:\/\/[^\s:/@]+:[^\s@/]+@/i]
 ];
 const detectSecrets = (text) => rules.filter(([, pattern]) => pattern.test(text)).map(([category]) => category);
 const inspectFile = (filename, content) => {
   const categories = detectSecrets(content);
   if (isSensitivePath(filename)) categories.push("private filename");
   if (!/\.test\.[cm]?js$/.test(filename)) {
+    if (/(?:DATABASE_PASSWORD|PGPASSWORD|POSTGRES_PASSWORD)["']?\s*[:=]\s*["'][^"'\r\n]+["']/.test(content)) categories.push("literal database password");
     const assignments = content.matchAll(/(?:ADMIN_PASSWORD|adminPassword)["']?\s*[:=]\s*["']([^"'\r\n]+)["']/g);
     for (const [, value] of assignments) {
       if (!/^(?:change-this-password|test-password|your[-_ ].*|example[-_ ].*|placeholder|\$.*)$/i.test(value)) {

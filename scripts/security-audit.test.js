@@ -21,9 +21,17 @@ test("public identifiers and runtime secret references are distinguished from cr
   assert.deepEqual(detectSecrets('const measurementId = "G-1234567890"; const key = process.env.GA_PRIVATE_KEY;'), []);
   assert.deepEqual(detectSecrets('pem.replace(/-----BEGIN PRIVATE KEY-----/g, "")'), []);
   assert.equal(isSensitivePath(".env.example"), false);
-  for (const name of [".env", ".env.production", "credentials.json", "service-account.json", "backups/site.json", "academic-site-draft-2026.json", "signing.pfx"]) {
+  for (const name of [".env", ".env.production", "credentials.json", "service-account.json", "backups/site.json", "academic-site-draft-2026.json", "signing.pfx", "backend/private/file", "website.sqlite", "website.sqlite-wal", "website.sqlite3-shm", "website.db-journal", "website.pgdump", "website.dump"]) {
     assert.equal(isSensitivePath(name), true, name);
   }
+});
+
+test("PostgreSQL credentials are reported without echoing connection strings", () => {
+  const connection = "postgresql://" + "visitor:" + "synthetic-value" + "@db.example.invalid/portfolio";
+  const findings = inspectFile("config.txt", connection);
+  assert.deepEqual(findings, ["database connection credentials"]);
+  assert.ok(!JSON.stringify(findings).includes(connection));
+  assert.deepEqual(inspectFile("config.txt", 'PGPASSWORD="synthetic-value"'), ["literal database password"]);
 });
 
 test("only designated asset types and the generated image manifest can be published", () => {

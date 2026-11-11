@@ -1,50 +1,50 @@
 [
   {
-    "period": "2023 - Present",
     "degree": "PhD, Computer Science and Engineering",
-    "institution": "Indian Institute of Technology Jammu",
-    "institutionLogo": "assets/institutes/iit-jammu.ico",
+    "period": "2023 - Present",
+    "result": "First Class · CGPA: 7.00",
     "details": "Supervisor: Prof. Sidharth Maheswari",
-    "result": "First Class · CGPA: 7.00"
+    "institution": "Indian Institute of Technology Jammu",
+    "institutionLogo": "assets/institutes/iit-jammu.ico"
   },
   {
-    "period": "2020 - 2022",
     "degree": "MTech, Computer Science and Engineering",
-    "institution": "Mizoram University",
-    "institutionLogo": "assets/institutes/mizoram-university.png",
+    "period": "2020 - 2022",
+    "result": "First Class · CGPA: 7.66",
     "details": "Image Processing",
-    "result": "First Class · CGPA: 7.66"
+    "institution": "Mizoram University",
+    "institutionLogo": "assets/institutes/mizoram-university.png"
   },
   {
-    "period": "2016 - 2019",
     "degree": "MCA, Computer Science and Application",
-    "institution": "Biju Patnaik University of Technology, Odisha",
-    "institutionLogo": "assets/institutes/bput.png",
+    "period": "2016 - 2019",
+    "result": "First Class · CGPA: 8.30",
     "details": "Institute of Management and Information Technology (IMIT), Cuttack",
-    "result": "First Class · CGPA: 8.30"
+    "institution": "Biju Patnaik University of Technology, Odisha",
+    "institutionLogo": "assets/institutes/bput.png"
   },
   {
-    "period": "2013 - 2016",
     "degree": "BSc, Science",
-    "institution": "Berhampur University, Odisha",
-    "institutionLogo": "assets/institutes/berhampur-university.png",
+    "period": "2013 - 2016",
+    "result": "Second Class · 52.57%",
     "details": "K.S.U.B. College, Bhanjanagar",
-    "result": "Second Class · 52.57%"
+    "institution": "Berhampur University, Odisha",
+    "institutionLogo": "assets/institutes/berhampur-university.png"
   },
   {
-    "period": "2011 - 2013",
     "degree": "+2, Science",
-    "institution": "Rushikulya College, Surada",
-    "result": "Second Class · 58.83%"
+    "period": "2011 - 2013",
+    "result": "Second Class · 58.83%",
+    "institution": "Rushikulya College, Surada"
   },
   {
-    "period": "2007 - 2011",
     "degree": "Classes 8–10",
+    "period": "2007 - 2011",
     "institution": "Hadu Sarab High School, Badagada"
   },
   {
-    "period": "2001 - 2007",
     "degree": "Classes 1–7",
+    "period": "2001 - 2007",
     "institution": "Government Upper Primary School, Nuagan"
   }
 ]

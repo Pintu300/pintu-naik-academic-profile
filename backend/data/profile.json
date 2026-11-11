@@ -1,24 +1,24 @@
 {
   "name": "Pintu Naik",
-  "title": "PhD Scholar, Computer Science and Engineering",
-  "institution": "Indian Institute of Technology, Jammu",
-  "department": "CSE Department",
-  "email": "pintunaik300@gmail.com",
-  "photo": "assets/Photo.jpeg",
-  "summary": "My research focuses on scalable parallel and distributed algorithms, GPU-accelerated graph processing, and developing efficient scheduling methods for nanopore sequencing workloads on heterogeneous ARM–GPU systems.",
-  "researchAreas": "Parallel algorithms, GPU computing, and heterogeneous systems",
-  "focus": "Scalability, memory efficiency, and workload scheduling",
-  "aboutHeading": "Parallel algorithms and heterogeneous computing",
   "about": [
     "I am a PhD scholar in the Department of Computer Science and Engineering at the Indian Institute of Technology Jammu (IIT Jammu), India.",
     "I study scalable parallel and distributed algorithms, with a focus on GPU-accelerated graph processing and maximum-flow computation. My work includes memory-efficient graph representations, architecture-aware optimization, and experimental performance analysis.",
     "I also investigate communication-aware workload scheduling and nanopore basecalling workflows on heterogeneous computing systems, with an emphasis on scalability, resource use, and energy efficiency."
   ],
-  "contactHeading": "Get in touch",
-  "contactText": "For academic correspondence or discussions about parallel algorithms, GPU computing, and heterogeneous systems, please contact me by email.",
+  "email": "pintunaik300@gmail.com",
+  "focus": "Scalability, memory efficiency, and workload scheduling",
   "links": {
-    "department": "https://www.iitjammu.ac.in/computer_science_engineering/phd-list",
-    "linkedin": "https://www.linkedin.com/in/pintu-naik/"
+    "linkedin": "https://www.linkedin.com/in/pintu-naik/",
+    "department": "https://www.iitjammu.ac.in/computer_science_engineering/phd-list"
   },
+  "photo": "assets/Photo.jpeg",
+  "title": "PhD Scholar, Computer Science and Engineering",
+  "summary": "My research focuses on scalable parallel and distributed algorithms, GPU-accelerated graph processing, and developing efficient scheduling methods for nanopore sequencing workloads on heterogeneous ARM–GPU systems.",
+  "department": "CSE Department",
+  "contactText": "For academic correspondence or discussions about parallel algorithms, GPU computing, and heterogeneous systems, please contact me by email.",
+  "institution": "Indian Institute of Technology, Jammu",
+  "aboutHeading": "Parallel algorithms and heterogeneous computing",
+  "researchAreas": "Parallel algorithms, GPU computing, and heterogeneous systems",
+  "contactHeading": "Get in touch",
   "academicService": "Served as a reviewer for the Second International Conference on Applied Artificial Intelligence (2AI 2026)."
 }

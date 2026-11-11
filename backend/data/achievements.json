@@ -1,212 +1,212 @@
 [
   {
-    "category": "Achievements",
-    "title": "Award Trophy",
+    "alt": "Award trophy",
     "image": "assets/CUK/cuk1.jpeg",
-    "alt": "Award trophy"
+    "title": "Award Trophy",
+    "category": "Achievements"
   },
   {
-    "category": "Achievements",
-    "title": "Academic Award Celebration",
+    "alt": "Group celebrating at an academic event",
     "image": "assets/CUK/cuk2.jpeg",
-    "alt": "Group celebrating at an academic event"
+    "title": "Academic Award Celebration",
+    "category": "Achievements"
   },
   {
-    "category": "Achievements",
-    "title": "Conference Session",
+    "alt": "Audience attending a conference presentation",
     "image": "assets/CUK/cuk3.jpg",
-    "alt": "Audience attending a conference presentation"
+    "title": "Conference Session",
+    "category": "Achievements"
   },
   {
-    "category": "Achievements",
-    "title": "Award Certificate and Trophy",
+    "alt": "Award certificate displayed with a trophy",
     "image": "assets/CUK/cuk4.jpeg",
-    "alt": "Award certificate displayed with a trophy"
+    "title": "Award Certificate and Trophy",
+    "category": "Achievements"
   },
   {
-    "category": "Achievements",
-    "title": "Award Presentation",
+    "alt": "With CUK Professor during an award presentation",
     "image": "assets/CUK/cuk6.jpeg",
-    "alt": "With CUK Professor during an award presentation"
+    "title": "Award Presentation",
+    "category": "Achievements"
   },
   {
-    "category": "Achievements",
-    "title": "Academic Symposium",
+    "alt": "Attending an academic symposium",
     "image": "assets/Mtech/mzu1.jpg",
-    "alt": "Attending an academic symposium"
+    "title": "Academic Symposium",
+    "category": "Achievements"
   },
   {
-    "category": "Achievements",
-    "title": "Symposium Group Photo",
+    "alt": "Group photo at an academic symposium",
     "image": "assets/Mtech/mzu2.jpg",
-    "alt": "Group photo at an academic symposium"
+    "title": "Symposium Group Photo",
+    "category": "Achievements"
   },
   {
-    "category": "Achievements",
-    "title": "Academic Recognition",
+    "alt": "Receiving recognition at an academic event",
     "image": "assets/PhD/phd3.jpg",
-    "alt": "Receiving recognition at an academic event"
+    "title": "Academic Recognition",
+    "category": "Achievements"
   },
   {
-    "category": "Fun & Memories",
-    "title": "Classroom Memories",
+    "alt": "Group photo with classmates",
     "image": "assets/CUK/cuk5.jpg",
-    "alt": "Group photo with classmates"
+    "title": "Classroom Memories",
+    "category": "Fun & Memories"
   },
   {
-    "category": "Fun & Memories",
-    "title": "Friends on Campus",
+    "alt": "Selfie with friends on campus",
     "image": "assets/MCA/imit1.jpg",
-    "alt": "Selfie with friends on campus"
+    "title": "Friends on Campus",
+    "category": "Fun & Memories"
   },
   {
-    "category": "Fun & Memories",
-    "title": "Class Gathering",
+    "alt": "Classmates gathered outdoors",
     "image": "assets/MCA/imit2.jpg",
-    "alt": "Classmates gathered outdoors"
+    "title": "Class Gathering",
+    "category": "Fun & Memories"
   },
   {
-    "category": "Fun & Memories",
-    "title": "Friends Group Selfie",
+    "alt": "Group selfie with friends",
     "image": "assets/MCA/imit3.jpg",
-    "alt": "Group selfie with friends"
-  },
-  {
-    "category": "Fun & Memories",
-    "title": "MCA Class Photo",
-    "image": "assets/MCA/imit4.jpg",
-    "alt": "MCA classmates together"
-  },
-  {
-    "category": "Fun & Memories",
-    "title": "A Day with Classmates",
-    "image": "assets/MCA/imit5.jpg",
-    "alt": "Friends spending time together"
-  },
-  {
-    "category": "Fun & Memories",
-    "title": "Friends Together",
-    "image": "assets/MCA/imit7.jpg",
-    "alt": "Group photo with classmates"
-  },
-  {
-    "category": "Fun & Memories",
-    "title": "Classmates Selfie",
-    "image": "assets/MCA/imit8.jpg",
-    "alt": "Selfie with classmates"
-  },
-  {
-    "category": "Fun & Memories",
-    "title": "MCA Class Gathering",
-    "image": "assets/MCA/imit9.jpg",
-    "alt": "MCA classmates gathered together"
-  },
-  {
-    "category": "Fun & Memories",
-    "title": "Friends on Campus",
-    "image": "assets/MCA/imit10.jpg",
-    "alt": "Friends gathered on campus"
-  },
-  {
-    "category": "Fun & Memories",
-    "title": "Evening Celebration",
-    "image": "assets/MCA/imit11.jpg",
-    "alt": "Group at an evening event"
-  },
-  {
-    "category": "Fun & Memories",
-    "title": "Campus Portrait",
-    "image": "assets/MCA/imit12.jpg",
-    "alt": "Portrait outdoors on campus"
-  },
-  {
-    "category": "Fun & Memories",
-    "title": "Friends at College",
-    "image": "assets/MCA/imit13.jpg",
-    "alt": "Friends together at college"
-  },
-  {
-    "category": "Fun & Memories",
-    "title": "College Celebration",
-    "image": "assets/MCA/imit14.jpg",
-    "alt": "Classmates celebrating together"
-  },
-  {
-    "category": "Fun & Memories",
     "title": "Friends Group Selfie",
-    "image": "assets/MCA/imit15.jpg",
-    "alt": "Selfie with friends"
+    "category": "Fun & Memories"
   },
   {
-    "category": "Fun & Memories",
-    "title": "Classmates Together",
-    "image": "assets/MCA/imit16.jpg",
-    "alt": "Group photo with classmates"
+    "alt": "MCA classmates together",
+    "image": "assets/MCA/imit4.jpg",
+    "title": "MCA Class Photo",
+    "category": "Fun & Memories"
   },
   {
-    "category": "Fun & Memories",
-    "title": "Classmates Together",
-    "image": "assets/MCA/imit17.jpg",
-    "alt": "Portrait at college"
+    "alt": "Friends spending time together",
+    "image": "assets/MCA/imit5.jpg",
+    "title": "A Day with Classmates",
+    "category": "Fun & Memories"
   },
   {
-    "category": "Fun & Memories",
+    "alt": "Group photo with classmates",
+    "image": "assets/MCA/imit7.jpg",
+    "title": "Friends Together",
+    "category": "Fun & Memories"
+  },
+  {
+    "alt": "Selfie with classmates",
+    "image": "assets/MCA/imit8.jpg",
+    "title": "Classmates Selfie",
+    "category": "Fun & Memories"
+  },
+  {
+    "alt": "MCA classmates gathered together",
+    "image": "assets/MCA/imit9.jpg",
+    "title": "MCA Class Gathering",
+    "category": "Fun & Memories"
+  },
+  {
+    "alt": "Friends gathered on campus",
+    "image": "assets/MCA/imit10.jpg",
     "title": "Friends on Campus",
-    "image": "assets/Mtech/mzu3.jpg",
-    "alt": "Friends walking together outdoors"
+    "category": "Fun & Memories"
   },
   {
-    "category": "Fun & Memories",
-    "title": "Mizoram University Mtech Group Photo",
-    "image": "assets/Mtech/mzu4.jpg",
-    "alt": "Group of university friends"
+    "alt": "Group at an evening event",
+    "image": "assets/MCA/imit11.jpg",
+    "title": "Evening Celebration",
+    "category": "Fun & Memories"
   },
   {
-    "category": "Fun & Memories",
+    "alt": "Portrait outdoors on campus",
+    "image": "assets/MCA/imit12.jpg",
     "title": "Campus Portrait",
+    "category": "Fun & Memories"
+  },
+  {
+    "alt": "Friends together at college",
+    "image": "assets/MCA/imit13.jpg",
+    "title": "Friends at College",
+    "category": "Fun & Memories"
+  },
+  {
+    "alt": "Classmates celebrating together",
+    "image": "assets/MCA/imit14.jpg",
+    "title": "College Celebration",
+    "category": "Fun & Memories"
+  },
+  {
+    "alt": "Selfie with friends",
+    "image": "assets/MCA/imit15.jpg",
+    "title": "Friends Group Selfie",
+    "category": "Fun & Memories"
+  },
+  {
+    "alt": "Group photo with classmates",
+    "image": "assets/MCA/imit16.jpg",
+    "title": "Classmates Together",
+    "category": "Fun & Memories"
+  },
+  {
+    "alt": "Portrait at college",
+    "image": "assets/MCA/imit17.jpg",
+    "title": "Classmates Together",
+    "category": "Fun & Memories"
+  },
+  {
+    "alt": "Friends walking together outdoors",
+    "image": "assets/Mtech/mzu3.jpg",
+    "title": "Friends on Campus",
+    "category": "Fun & Memories"
+  },
+  {
+    "alt": "Group of university friends",
+    "image": "assets/Mtech/mzu4.jpg",
+    "title": "Mizoram University Mtech Group Photo",
+    "category": "Fun & Memories"
+  },
+  {
+    "alt": "Portrait on campus",
     "image": "assets/PhD/phd1.jpg",
-    "alt": "Portrait on campus"
+    "title": "Campus Portrait",
+    "category": "Fun & Memories"
   },
   {
-    "category": "Travel & Outdoors",
-    "title": "Campus Architecture",
+    "alt": "University building and walkway",
     "image": "assets/CUK/cuk1.jpg",
-    "alt": "University building and walkway"
+    "title": "Campus Architecture",
+    "category": "Travel & Outdoors"
   },
   {
-    "category": "Travel & Outdoors",
-    "title": "Countryside Ride",
+    "alt": "Motorcycle ride through the countryside",
     "image": "assets/MCA/trip.jpg",
-    "alt": "Motorcycle ride through the countryside"
+    "title": "Countryside Ride",
+    "category": "Travel & Outdoors"
   },
   {
-    "category": "Travel & Outdoors",
-    "title": "Visit to the Coast",
+    "alt": "Coastline and lighthouse",
     "image": "assets/MCA/imit6.jpg",
-    "alt": "Coastline and lighthouse"
+    "title": "Visit to the Coast",
+    "category": "Travel & Outdoors"
   },
   {
-    "category": "Travel & Outdoors",
-    "title": "Vehicle Exhibit",
+    "alt": "Military vehicle on display",
     "image": "assets/PhD/phd2.jpg",
-    "alt": "Military vehicle on display"
+    "title": "Vehicle Exhibit",
+    "category": "Travel & Outdoors"
   },
   {
-    "category": "Travel & Outdoors",
-    "title": "Outdoor Visit",
+    "alt": "Large vehicle outdoors",
     "image": "assets/PhD/phd4.jpg",
-    "alt": "Large vehicle outdoors"
+    "title": "Outdoor Visit",
+    "category": "Travel & Outdoors"
   },
   {
-    "category": "Travel & Outdoors",
-    "title": "Evening Visit",
+    "alt": "Outdoor visit at night",
     "image": "assets/PhD/phd5.jpg",
-    "alt": "Outdoor visit at night"
+    "title": "Evening Visit",
+    "category": "Travel & Outdoors"
   },
   {
-    "category": "Travel & Outdoors",
-    "title": "Mountain View",
+    "alt": "Enjoying a mountain landscape",
     "image": "assets/PhD/phd6.jpg",
-    "alt": "Enjoying a mountain landscape"
+    "title": "Mountain View",
+    "category": "Travel & Outdoors"
   }
 ]

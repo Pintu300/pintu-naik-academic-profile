@@ -22,6 +22,21 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 127.0.0.1:5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      # Isolated CI service only; never use trust authentication for production.
+      TEST_DATABASE_URL: postgresql://postgres@127.0.0.1:5432/postgres?sslmode=disable
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -45,6 +60,13 @@ jobs:
 
       - name: Run regression tests
         run: npm test
+
+      - name: Check database initialization and migrations
+        env:
+          DATABASE_URL: postgresql://postgres@127.0.0.1:5432/postgres?sslmode=disable
+        run: |
+          npm run db:init
+          npm run db:check
 
       - name: Set up Firefox
         id: firefox

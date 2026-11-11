@@ -10,6 +10,17 @@
     "security:check": "node scripts/security-audit.js",
     "security:history": "node scripts/security-audit.js --history",
     "backup": "node scripts/content-snapshot.js",
+    "db:init": "node scripts/database-cli.js init",
+    "db:check": "node scripts/database-cli.js check",
+    "db:backup": "node scripts/database-cli.js backup",
+    "db:import": "node scripts/content-database.js import",
+    "db:export": "node scripts/content-database.js export",
+    "db:setup": "node scripts/local-database.js setup",
+    "db:start": "node scripts/local-database.js start",
+    "db:stop": "node scripts/local-database.js stop",
+    "db:status": "node scripts/local-database.js status",
+    "test:db": "node scripts/test-database.js",
+    "test:all": "node scripts/test-database.js --all",
     "test": "node --test backend/*.test.js frontend/*.test.js scripts/*.test.js",
     "build": "node scripts/build-static.js",
     "test:browser": "node scripts/browser-check.js",
@@ -22,5 +33,8 @@
   "devDependencies": {
     "sharp": "^0.35.5",
     "ws": "^8.22.2"
+  },
+  "dependencies": {
+    "pg": "^8.23.1"
   }
 }

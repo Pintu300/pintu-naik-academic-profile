@@ -104,7 +104,7 @@ const createAdminAuth = ({ adminUser, adminPassword, adminOrigin, sendJson, read
     }
     // Count before awaiting work so simultaneous guesses cannot evade the limit.
     attempts.set(address, { count: (entry?.count || 0) + 1, expires: entry?.expires || now() + LOGIN_WINDOW });
-    activeLogins++;
+    let verifyingPassword = false;
     try {
       if (Number(request.headers["content-length"]) > 4096) {
         request.resume();
@@ -127,6 +127,15 @@ const createAdminAuth = ({ adminUser, adminPassword, adminOrigin, sendJson, read
         sendJson(request, response, 400, { error: "Invalid login request." });
         return true;
       }
+      // Slow uploads must not occupy scarce password-hashing slots. Recheck
+      // immediately before starting work because other bodies may finish first.
+      if (activeLogins >= 4 || sessions.size >= 1000) {
+        response.setHeader("Retry-After", "60");
+        sendJson(request, response, 429, { error: "Too many login attempts. Try again later." });
+        return true;
+      }
+      activeLogins++;
+      verifyingPassword = true;
       const suppliedKey = await deriveKey(credentials.password, salt, 32);
       const suppliedUser = createHash("sha256").update(credentials.username).digest();
       const passwordMatches = timingSafeEqual(passwordKey, suppliedKey);
@@ -143,7 +152,7 @@ const createAdminAuth = ({ adminUser, adminPassword, adminOrigin, sendJson, read
       sendJson(request, response, 200, { status: "signed-in" });
       return true;
     } finally {
-      activeLogins--;
+      if (verifyingPassword) activeLogins--;
     }
   };
   return { authorize, handleAuth };

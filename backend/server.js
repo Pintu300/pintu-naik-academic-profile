@@ -80,6 +80,8 @@ class InvalidJsonError extends Error {
 }
 
 const send = (request, response, statusCode, body, contentType = "text/plain; charset=utf-8") => {
+  // Reject an unfinished oversized upload without retaining its connection.
+  if (statusCode === 413) response.setHeader("Connection", "close");
   let payload = Buffer.isBuffer(body) ? body : Buffer.from(body);
   if (/^(text\/|application\/json|image\/svg\+xml)/.test(contentType)) {
     response.setHeader("Vary", "Accept-Encoding");
@@ -145,10 +147,12 @@ const readRequestBody = (request, maxBodyBytes) =>
     let tooLarge = false;
 
     request.on("data", (chunk) => {
+      if (tooLarge) return;
       size += chunk.length;
       if (size > maxBodyBytes) {
         tooLarge = true;
         chunks.length = 0;
+        reject(new RequestBodyTooLargeError());
         return;
       }
 
@@ -178,6 +182,10 @@ const validateSiteData = (data) => {
     return "Data must be a JSON object.";
   }
 
+  if (Object.keys(data).some((key) => !Object.hasOwn(DATA_FILES, key))) {
+    return "Data contains unsupported top-level fields.";
+  }
+
   if (!data.profile || typeof data.profile !== "object" || Array.isArray(data.profile)) {
     return "Missing profile object.";
   }
@@ -200,6 +208,13 @@ const validateSiteData = (data) => {
   );
 
   if (missingField) return `Missing profile field: ${missingField}.`;
+
+  for (const publication of data.publications) {
+    if (typeof publication.title !== "string" || !publication.title.trim()) return "Each publication must have a title.";
+    if (!["conference", "journal", "bookChapter"].includes(publication.type)) {
+      return "Publication type must be conference, journal, or bookChapter.";
+    }
+  }
 
   const safeAsset = (value) => /^assets\/[A-Za-z0-9._/-]+$/.test(value)
     && !value.split("/").some((part) => !part || part.startsWith("."));

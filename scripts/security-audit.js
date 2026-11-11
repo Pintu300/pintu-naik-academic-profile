@@ -26,20 +26,20 @@ const inspectFile = (filename, content) => {
   }
   return [...new Set(categories)];
 };
-const git = (args, cwd = root) => {
-  const result = spawnSync("git", args, { cwd, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+const git = (args, cwd = root, input) => {
+  const result = spawnSync("git", args, { cwd, input, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
   if (result.error || result.status !== 0) throw new Error("Git inspection failed; no scan result can be claimed.");
   return result.stdout;
 };
 const run = ({ history = false, repositoryRoot = root, report = (summary) => console.log(JSON.stringify(summary, null, 2)) } = {}) => {
-  const inspectGit = (args) => git(args, repositoryRoot);
+  const inspectGit = (args, input) => git(args, repositoryRoot, input);
   const findings = [];
   const files = inspectGit(["ls-files", "--cached", "--others", "--exclude-standard", "-z"]).split("\0").filter(Boolean);
   for (const filename of files) {
     const file = path.join(repositoryRoot, filename);
     if (!fs.existsSync(file) || !fs.lstatSync(file).isFile()) continue;
     const content = fs.readFileSync(file);
-    for (const category of inspectFile(filename, content.includes(0) ? "" : content.toString("utf8"))) {
+    for (const category of inspectFile(filename, content.toString("utf8"))) {
       findings.push({ file: filename, category });
     }
   }
@@ -54,13 +54,16 @@ const run = ({ history = false, repositoryRoot = root, report = (summary) => con
   }
   let historyObjects = 0;
   if (history) {
-    const objects = inspectGit(["rev-list", "--objects", "--all"]).trim().split("\n");
-    for (const line of objects) {
+    const objects = inspectGit(["rev-list", "--objects", "--all"]).trim().split("\n").flatMap((line) => {
       const separator = line.indexOf(" ");
-      if (separator < 0) continue;
-      const id = line.slice(0, separator);
-      const filename = line.slice(separator + 1);
-      if (!/\.(?:[cm]?js|json|html|md|ya?ml|toml|txt|env|pem|key)$|(?:^|\/)\.env(?:\.|$)/i.test(filename) && !isSensitivePath(filename)) continue;
+      return separator < 0 ? [] : [{ id: line.slice(0, separator), filename: line.slice(separator + 1) }];
+    });
+    const blobs = new Set(objects.length ? inspectGit(["cat-file", "--batch-check=%(objectname) %(objecttype)"], objects.map(({ id }) => id).join("\n") + "\n")
+      .trim().split("\n").filter((line) => line.endsWith(" blob")).map((line) => line.split(" ")[0]) : []);
+    // Inspect every blob, including deleted shell/CSS files and binary assets.
+    // File extensions and NUL bytes do not establish that content is secret-free.
+    for (const { id, filename } of objects) {
+      if (!blobs.has(id)) continue;
       historyObjects++;
       for (const category of inspectFile(filename, inspectGit(["cat-file", "-p", id]))) {
         findings.push({ file: filename, object: id.slice(0, 12), category });

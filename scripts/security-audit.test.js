@@ -50,3 +50,29 @@ test("a secret staged in Git is detected even after it is removed from the worki
     await fs.rm(temporary, { recursive: true, force: true });
   }
 });
+
+test("history scanning detects deleted secrets in shell files and binary assets", async () => {
+  const fs = require("node:fs/promises");
+  const os = require("node:os");
+  const path = require("node:path");
+  const { spawnSync } = require("node:child_process");
+  const temporary = await fs.mkdtemp(path.join(os.tmpdir(), "academic-history-scan-"));
+  const git = (...args) => {
+    const result = spawnSync("git", ["-c", "user.name=Security Test", "-c", "user.email=test@example.invalid", ...args], { cwd: temporary, encoding: "utf8" });
+    assert.equal(result.status, 0);
+  };
+  try {
+    git("init", "--quiet");
+    const token = "gh" + "p_" + "z".repeat(36);
+    await fs.writeFile(path.join(temporary, "run.sh"), `export TOKEN='${token}'\n`);
+    await fs.writeFile(path.join(temporary, "image.png"), Buffer.concat([Buffer.from([0, 1, 2]), Buffer.from(token)]));
+    assert.ok(run({ repositoryRoot: temporary, report() {} }).some((item) => item.file === "image.png" && item.category === "GitHub token"));
+    git("add", "run.sh", "image.png");
+    git("commit", "--quiet", "-m", "Synthetic historical fixture");
+    git("rm", "--quiet", "run.sh", "image.png");
+    git("commit", "--quiet", "-m", "Remove fixtures");
+    const findings = run({ repositoryRoot: temporary, history: true, report() {} });
+    for (const filename of ["run.sh", "image.png"]) assert.ok(findings.some((item) => item.file === filename && item.object && item.category === "GitHub token"), filename);
+    assert.ok(!JSON.stringify(findings).includes(token));
+  } finally { await fs.rm(temporary, { recursive: true, force: true }); }
+});

@@ -165,6 +165,85 @@ test("protects the admin API and rejects malformed or oversized updates", async 
   assert.equal(oversized.status, 413);
 });
 
+test("rejects oversized chunked requests before the client finishes uploading", async () => {
+  const http = require("node:http");
+  const unfinished = (route, size, headers = {}) => new Promise((resolve, reject) => {
+    const request = http.request(`${baseUrl}${route}`, {
+      method: route.includes("auth") ? "POST" : "PUT",
+      headers: { "Content-Type": "application/json", "Transfer-Encoding": "chunked", ...headers }
+    }, (response) => {
+      response.resume();
+      response.on("end", () => {
+        clearTimeout(timer);
+        request.destroy();
+        resolve({ status: response.statusCode, connection: response.headers.connection });
+      });
+    });
+    const timer = setTimeout(() => {
+      request.destroy();
+      reject(new Error("The server waited for the client to finish an oversized body."));
+    }, 2500);
+    request.on("error", (error) => { clearTimeout(timer); reject(error); });
+    // Deliberately do not call end(): exceeding the limit must be sufficient.
+    request.write(Buffer.alloc(size, "x"));
+  });
+  for (const [route, size, headers] of [
+    ["/api/auth/login", 4097, { "X-Requested-With": "admin-editor" }],
+    ["/api/admin/site-data", 1001, { Cookie: adminCookie, "X-CSRF-Token": csrfToken, "If-Match": revision }]
+  ]) {
+    assert.deepEqual(await unfinished(route, size, headers), { status: 413, connection: "close" });
+  }
+  assert.equal((await login()).status, 200);
+});
+
+test("unfinished login uploads cannot occupy all password-verification slots", async () => {
+  const http = require("node:http");
+  const held = [];
+  let notifyReady;
+  let arrivals = 0;
+  const ready = new Promise((resolve) => { notifyReady = resolve; });
+  const observe = (request) => {
+    if (request.headers["x-upload-test"] && ++arrivals === 4) notifyReady();
+  };
+  server.on("request", observe);
+  try {
+    for (let index = 0; index < 4; index++) {
+      const request = http.request(`${baseUrl}/api/auth/login`, {
+        method: "POST", headers: { "Content-Type": "application/json", "X-Requested-With": "admin-editor", "X-Upload-Test": "held", "Transfer-Encoding": "chunked" }
+      });
+      request.on("error", () => {});
+      held.push(request);
+      request.write("{");
+    }
+    await ready;
+    const response = await login();
+    assert.equal(response.status, 200, "Slow body uploads must not exhaust the password-verification limit.");
+  } finally {
+    server.removeListener("request", observe);
+    held.forEach((request) => request.destroy());
+  }
+});
+
+test("rejects unknown backup roots and publication records that cannot appear in any category", async () => {
+  for (const update of [
+    (data) => { data.unexpected = "Must not be retained in browser backups"; },
+    (data) => { Object.defineProperty(data, "__proto__", { value: {}, enumerable: true }); },
+    (data) => { data.publications = [{ title: "Invisible paper", type: "unsupported" }]; },
+    (data) => { data.publications = [{ title: "Paper with no type" }]; },
+    (data) => { data.publications = [{ title: " ", type: "journal" }]; }
+  ]) {
+    const data = structuredClone(DATA);
+    update(data);
+    for (const [route, method] of [["site-data", "PUT"], ["validate-backup", "POST"]]) {
+      const response = await fetch(`${baseUrl}/api/admin/${route}`, {
+        method, headers: { Cookie: adminCookie, "X-CSRF-Token": csrfToken, "If-Match": revision, "Content-Type": "application/json" }, body: JSON.stringify(data)
+      });
+      assert.equal(response.status, 400, `${route} must reject invalid content`);
+    }
+  }
+  assert.deepEqual(JSON.parse(await fs.readFile(path.join(temporaryDirectory, "data/profile.json"), "utf8")), DATA.profile);
+});
+
 test("saves valid admin updates and validates all required data", async () => {
   const updatedData = structuredClone(DATA);
   updatedData.skills[0].description = "C++, OpenMP, CUDA";

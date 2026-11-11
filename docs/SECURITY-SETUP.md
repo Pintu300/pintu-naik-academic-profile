@@ -53,8 +53,10 @@ npm run security:history
 ```
 
 The first command checks current nonignored files and the Git index. The second
-also scans locally available Git history for credential patterns and private
-filenames. Reports contain filenames and categories, never matched values.
+also scans all locally available historical Git blobs for credential patterns
+and private filenames, including deleted files and binary assets. File extensions
+and NUL bytes do not exempt content. Reports contain filenames and categories,
+never matched values.
 The deployment workflow fetches full available history and runs this check
 before publishing.
 

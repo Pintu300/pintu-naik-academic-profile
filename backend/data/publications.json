@@ -6,8 +6,7 @@
     "year": "2024",
     "title": "Integrated Crowd Counting System Utilizing IoT Sensors, OpenCV and YOLO Models for Accurate People Density Estimation in Real-Time Environments",
     "venue": "2024 1st International Conference on Cognitive, Green and Ubiquitous Computing (IC-CGU), pp. 1–6",
-    "authors": "Suvendra Kumar Jayasingh, Pintu Naik, Satyaprakash Swain, Kumar Janardan Patra, Manas Ranjan Kabat",
-    "codeUrl": ""
+    "authors": "Suvendra Kumar Jayasingh, Pintu Naik, Satyaprakash Swain, Kumar Janardan Patra, Manas Ranjan Kabat"
   },
   {
     "doi": "https://doi.org/10.1201/9781003581215-42",
@@ -16,8 +15,7 @@
     "year": "2025",
     "title": "Design and Implementation of Viterbi Decoder Using Verilog HDL",
     "venue": "Computing, Communication and Intelligence, pp. 208–212",
-    "authors": "Khirod Kumar Ghadai, Subrat Kumar Nayak, Biswa Ranjan Senapati, Kumar Janardan Patra, Satyaprakash Swain, Pintu Naik",
-    "codeUrl": ""
+    "authors": "Khirod Kumar Ghadai, Subrat Kumar Nayak, Biswa Ranjan Senapati, Kumar Janardan Patra, Satyaprakash Swain, Pintu Naik"
   },
   {
     "type": "conference",
@@ -25,8 +23,7 @@
     "title": "High-Performance Structure-Aware GPU Framework for Maximum Flow Computation",
     "venue": "The 32nd IEEE International Conference on Parallel and Distributed Systems (ICPADS 2026), November 22–26, 2026 · Tokyo, Japan · Paper ID 4811",
     "status": "Accepted",
-    "authors": "Pintu Naik, Sidharth Maheswari",
-    "codeUrl": ""
+    "authors": "Pintu Naik, Sidharth Maheswari"
   },
   {
     "type": "journal",
@@ -35,7 +32,6 @@
     "venue": "Concurrency and Computation: Practice and Experience (Wiley)",
     "status": "Accepted",
     "authors": "Pintu Naik, Sidharth Maheswari",
-    "codeUrl": "",
     "acceptanceRate": "10%",
     "journalQuartile": "Q2"
   },
@@ -45,8 +41,7 @@
     "title": "SAFE-RT: Slack-Certified Timing-Assurance Recovery for Deadline-Constrained Inference on ARM Edge Clusters",
     "venue": "30th International Symposium on Real-Time Distributed Computing (ISORC 2027) · Submission #73",
     "status": "Submitted",
-    "authors": "Pintu Naik",
-    "codeUrl": ""
+    "authors": "Pintu Naik"
   },
   {
     "type": "conference",
@@ -54,8 +49,7 @@
     "title": "HARP: Heterogeneity-Aware Cost-Balanced Partitioning for Distributed Nanopore Signal Processing",
     "venue": "8th International Conference on Advances in Distributed Computing and Machine Learning (ICADCML 2027) · Paper ID 986",
     "status": "Submitted",
-    "authors": "Pintu Naik",
-    "codeUrl": ""
+    "authors": "Pintu Naik"
   },
   {
     "type": "conference",
@@ -63,7 +57,6 @@
     "title": "Comparative Analysis of Machine Learning Techniques for Face Recognition and 3D Mesh Construction",
     "venue": "Second International Conference on Applied Artificial Intelligence (2AI 2026) · Article 56",
     "status": "Accepted",
-    "authors": "Pintu Naik, Niten Chandra Sethy, and Swathi PS",
-    "codeUrl": ""
+    "authors": "Pintu Naik, Niten Chandra Sethy, and Swathi PS"
   }
 ]

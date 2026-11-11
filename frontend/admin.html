@@ -26,6 +26,18 @@
       <form class="editor-form" id="editor-form" data-editor-form>
         <nav class="editor-section-nav" aria-label="Editor sections" data-editor-nav></nav>
         <div class="editor-backup"><button class="button neutral" type="button" data-editor-backup disabled>Download saved backup</button><p>Downloads the last saved content. Unsaved changes are not included.</p></div>
+        <section class="editor-card" aria-labelledby="restore-heading">
+          <h2 id="restore-heading">Restore a backup</h2>
+          <p id="restore-help">Choose a JSON backup (up to 1 MB). Review it before loading it into the editor. Your website changes only when you save.</p>
+          <label>Backup file<input type="file" accept=".json,application/json" data-editor-restore aria-describedby="restore-help" disabled /></label>
+          <div data-restore-preview hidden>
+            <p data-restore-summary role="status"></p>
+            <button class="button neutral" type="button" data-restore-apply>Load backup into editor</button>
+            <button class="button neutral" type="button" data-restore-cancel>Cancel restoration</button>
+          </div>
+          <p data-restore-status role="status" aria-live="polite"></p>
+        </section>
+        <div class="editor-backup"><button class="button neutral" type="button" data-editor-draft disabled>Download current draft</button><p>Includes unsaved edits. Keep a copy before reloading after a save conflict.</p></div>
         <fieldset class="editor-fields" data-editor-fields disabled>
           <legend class="sr-only">Website content</legend>
         <section class="editor-card" aria-labelledby="profile-heading">

@@ -28,6 +28,7 @@ let temporaryDirectory;
 let server;
 let baseUrl;
 let csrfToken;
+let revision;
 let adminCookie;
 let testTime;
 
@@ -72,6 +73,7 @@ beforeEach(async () => {
   adminCookie = signedIn.headers.get("set-cookie").split(";")[0];
   const response = await fetch(`${baseUrl}/api/admin/site-data`, { headers: { Cookie: adminCookie } });
   csrfToken = response.headers.get("x-csrf-token");
+  revision = response.headers.get("etag");
 });
 
 afterEach(async () => {
@@ -129,7 +131,7 @@ test("protects the admin API and rejects malformed or oversized updates", async 
     method: "PUT",
     headers: {
       Cookie: adminCookie,
-      "X-CSRF-Token": csrfToken,
+      "X-CSRF-Token": csrfToken, "If-Match": revision,
       "Content-Type": "application/json"
     },
     body: "{invalid"
@@ -141,7 +143,7 @@ test("protects the admin API and rejects malformed or oversized updates", async 
     method: "PUT",
     headers: {
       Cookie: adminCookie,
-      "X-CSRF-Token": csrfToken,
+      "X-CSRF-Token": csrfToken, "If-Match": revision,
       "Content-Type": "application/json"
     },
     body: JSON.stringify({ payload: "x".repeat(1_100) })
@@ -157,7 +159,7 @@ test("saves valid admin updates and validates all required data", async () => {
     method: "PUT",
     headers: {
       Cookie: adminCookie,
-      "X-CSRF-Token": csrfToken,
+      "X-CSRF-Token": csrfToken, "If-Match": revision,
       "Content-Type": "application/json"
     },
     body: JSON.stringify(updatedData)
@@ -176,7 +178,7 @@ test("saves valid admin updates and validates all required data", async () => {
     method: "PUT",
     headers: {
       Cookie: adminCookie,
-      "X-CSRF-Token": csrfToken,
+      "X-CSRF-Token": csrfToken, "If-Match": revision,
       "Content-Type": "application/json"
     },
     body: JSON.stringify(invalidData)
@@ -186,15 +188,19 @@ test("saves valid admin updates and validates all required data", async () => {
   assert.deepEqual(await invalidResponse.json(), { error: "teaching must be an array." });
 });
 
-test("rolls back a data update when a file cannot be replaced", async () => {
+test("rolls back a data update when a file cannot be replaced", async (t) => {
   const dataDir = path.join(temporaryDirectory, "data");
-  await fs.unlink(path.join(dataDir, "skills.json"));
+  const rename = fs.rename.bind(fs);
+  t.mock.method(fs, "rename", async (from, to) => {
+    if (from === path.join(dataDir, "skills.json") && to.endsWith(".bak")) throw new Error("Simulated replacement failure");
+    return rename(from, to);
+  });
 
   const response = await fetch(`${baseUrl}/api/admin/site-data`, {
     method: "PUT",
     headers: {
       Cookie: adminCookie,
-      "X-CSRF-Token": csrfToken,
+      "X-CSRF-Token": csrfToken, "If-Match": revision,
       "Content-Type": "application/json"
     },
     body: JSON.stringify(DATA)
@@ -223,8 +229,8 @@ test("blocks admin updates without a token and from foreign origins", async () =
   for (const headers of [
     {},
     { "X-CSRF-Token": "wrong" },
-    { "X-CSRF-Token": csrfToken, Origin: "https://attacker.example" },
-    { "X-CSRF-Token": csrfToken, "Sec-Fetch-Site": "cross-site" }
+    { "X-CSRF-Token": csrfToken, "If-Match": revision, Origin: "https://attacker.example" },
+    { "X-CSRF-Token": csrfToken, "If-Match": revision, "Sec-Fetch-Site": "cross-site" }
   ]) {
     const response = await fetch(`${baseUrl}/api/admin/site-data`, {
       method: "PUT",
@@ -280,7 +286,7 @@ test("rejects unsafe stored URLs, asset paths, and nested values", async () => {
     assert.equal(typeof validateSiteData(data), "string");
     const response = await fetch(`${baseUrl}/api/admin/site-data`, {
       method: "PUT",
-      headers: { Cookie: adminCookie, "X-CSRF-Token": csrfToken, "Content-Type": "application/json" },
+      headers: { Cookie: adminCookie, "X-CSRF-Token": csrfToken, "If-Match": revision, "Content-Type": "application/json" },
       body: JSON.stringify(data)
     });
     assert.equal(response.status, 400);
@@ -315,14 +321,65 @@ test("serializes simultaneous admin saves without mixing content or leaving stag
   });
   const responses = await Promise.all(versions.map((data) => fetch(`${baseUrl}/api/admin/site-data`, {
     method: "PUT",
-    headers: { Cookie: adminCookie, "X-CSRF-Token": csrfToken, "Content-Type": "application/json", Origin: baseUrl },
+    headers: { Cookie: adminCookie, "X-CSRF-Token": csrfToken, "If-Match": revision, "Content-Type": "application/json", Origin: baseUrl },
     body: JSON.stringify(data)
   })));
-  responses.forEach((response) => assert.equal(response.status, 200));
+  assert.deepEqual(responses.map((response) => response.status).sort(), [200, 412, 412]);
   const saved = await (await fetch(`${baseUrl}/api/admin/site-data`, { headers: { Cookie: adminCookie } })).json();
   assert.equal(saved.profile.name, saved.skills[0].description);
   const files = await fs.readdir(path.join(temporaryDirectory, "data"));
   assert.equal(files.some((name) => name.endsWith(".tmp") || name.endsWith(".bak")), false);
+});
+
+test("admin saves require an exact current revision and return the next revision", async () => {
+  const put = (version, data = DATA) => fetch(`${baseUrl}/api/admin/site-data`, {
+    method: "PUT", headers: { Cookie: adminCookie, "X-CSRF-Token": csrfToken, "Content-Type": "application/json", ...(version === undefined ? {} : { "If-Match": version }) },
+    body: JSON.stringify(data)
+  });
+  assert.match(revision, /^"[a-f0-9]{64}"$/);
+  assert.equal((await put()).status, 428);
+  assert.equal((await put("*")).status, 412);
+  const updated = structuredClone(DATA);
+  updated.profile.name = "New saved name";
+  const saved = await put(revision, updated);
+  assert.equal(saved.status, 200);
+  const next = saved.headers.get("etag");
+  assert.notEqual(next, revision);
+  assert.equal((await put(revision)).status, 412);
+  const response = await fetch(`${baseUrl}/api/admin/site-data`, { headers: { Cookie: adminCookie } });
+  assert.equal(response.headers.get("etag"), next);
+  assert.equal((await response.json()).profile.name, updated.profile.name);
+  assert.equal((await put(next)).status, 200);
+});
+
+test("external JSON edits invalidate an older editor revision", async () => {
+  await fs.writeFile(path.join(temporaryDirectory, "data/profile.json"), JSON.stringify({ ...DATA.profile, name: "Changed in terminal" }));
+  const response = await fetch(`${baseUrl}/api/admin/site-data`, {
+    method: "PUT", headers: { Cookie: adminCookie, "X-CSRF-Token": csrfToken, "If-Match": revision, "Content-Type": "application/json" }, body: JSON.stringify(DATA)
+  });
+  assert.equal(response.status, 412);
+  assert.match((await response.json()).error, /Download your draft/);
+});
+
+test("backup validation requires authentication and CSRF protection and never writes data", async () => {
+  const route = `${baseUrl}/api/admin/validate-backup`;
+  const backup = structuredClone(DATA);
+  backup.profile.name = "Backup name";
+  const submit = (headers, body = JSON.stringify(backup)) => fetch(route, { method: "POST", headers: { "Content-Type": "application/json", ...headers }, body });
+  assert.equal((await submit({})).status, 401);
+  assert.equal((await submit({ Cookie: adminCookie })).status, 403);
+  const headers = { Cookie: adminCookie, "X-CSRF-Token": csrfToken };
+  assert.equal((await submit({ ...headers, Origin: "https://attacker.example" })).status, 403);
+  assert.equal((await fetch(route, { headers: { Cookie: adminCookie } })).status, 405);
+  const before = await Promise.all(Object.keys(DATA).map((key) => fs.readFile(path.join(temporaryDirectory, `data/${key}.json`), "utf8")));
+  const response = await submit(headers);
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { status: "valid" });
+  assert.deepEqual(await Promise.all(Object.keys(DATA).map((key) => fs.readFile(path.join(temporaryDirectory, `data/${key}.json`), "utf8"))), before);
+  assert.equal((await submit(headers, "{invalid")).status, 400);
+  assert.equal((await submit(headers, JSON.stringify({ profile: {} }))).status, 400);
+  assert.equal((await submit(headers, JSON.stringify({ ...DATA, profile: { ...DATA.profile, photo: "../../secret" } }))).status, 400);
+  assert.equal((await submit(headers, " ".repeat(1001))).status, 413);
 });
 
 test("static pages carry the same script restrictions as the server", async () => {
@@ -406,7 +463,7 @@ test("logging in rotates the session and prevents cross-session CSRF token reuse
   assert.notEqual(oldCookie, newCookie);
   assert.equal((await fetch(`${baseUrl}/api/admin/site-data`, { headers: { Cookie: oldCookie } })).status, 401);
   const response = await fetch(`${baseUrl}/api/admin/site-data`, {
-    method: "PUT", headers: { Cookie: newCookie, "X-CSRF-Token": csrfToken, "Content-Type": "application/json" }, body: JSON.stringify(DATA)
+    method: "PUT", headers: { Cookie: newCookie, "X-CSRF-Token": csrfToken, "If-Match": revision, "Content-Type": "application/json" }, body: JSON.stringify(DATA)
   });
   assert.equal(response.status, 403);
 });
@@ -494,6 +551,10 @@ test("revalidates public assets without serving stale edits or caching admin con
   for (const route of ["/admin.html", "/admin.js", "/api/admin/site-data"]) {
     const response = await fetch(`${baseUrl}${route}`, { headers: { Cookie: adminCookie } });
     assert.equal(response.headers.get("cache-control"), "no-store");
-    assert.equal(response.headers.get("etag"), null);
+    if (route === "/api/admin/site-data") {
+      assert.equal(response.headers.get("etag"), revision);
+      const recheck = await fetch(`${baseUrl}${route}`, { headers: { Cookie: adminCookie, "If-None-Match": revision } });
+      assert.equal(recheck.status, 200);
+    } else assert.equal(response.headers.get("etag"), null);
   }
 });

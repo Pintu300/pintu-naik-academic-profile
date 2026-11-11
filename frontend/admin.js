@@ -2,6 +2,9 @@ const form = document.querySelector("[data-editor-form]");
 const statusElement = document.querySelector("[data-editor-status]");
 
 let siteData = null;
+let editorBase = null;
+let revision = "";
+let saving = false;
 let csrfToken = "";
 const fieldGroup = document.querySelector("[data-editor-fields]");
 const saveButtons = [...document.querySelectorAll("[data-editor-save], [data-editor-form] [type='submit']")];
@@ -17,7 +20,7 @@ const setStatus = (message, type = "info") => {
   statusElement.dataset.status = type;
 };
 
-const getValue = (path) => path.split(".").reduce((value, key) => value?.[key], siteData);
+const getValue = (path, data) => path.split(".").reduce((value, key) => value?.[key], data);
 
 const setValue = (target, path, value) => {
   const keys = path.split(".");
@@ -137,7 +140,9 @@ const filterCollection = (key) => {
   state.count.textContent = `${visible} of ${entries.length} entries`;
 };
 
-const setupCollections = () => {
+const setupCollections = (data) => {
+  collectionHost.replaceChildren();
+  collectionNodes.clear();
   Object.entries(editorSections).forEach(([key, definition]) => {
     const section = document.createElement("section");
     section.className = "editor-card";
@@ -208,16 +213,18 @@ const setupCollections = () => {
     }
     section.append(toolbar, count, list, addButton, undoButton);
     collectionHost.append(section);
-    renderCollection(key, siteData[key] || []);
+    renderCollection(key, data[key] || []);
   });
 };
 
-const fillForm = () => {
+const fillForm = (data = siteData) => {
+  editorBase = structuredClone(data);
   form.querySelectorAll("[name^='profile.']").forEach((field) => {
-    field.value = field.name === "profile.about" ? (siteData.profile.about || []).join("\n\n") : getValue(field.name) || "";
+    field.value = field.name === "profile.about" ? (data.profile.about || []).join("\n\n") : getValue(field.name, data) || "";
   });
-  setupCollections();
+  setupCollections(data);
   const nav = document.querySelector("[data-editor-nav]");
+  nav.replaceChildren();
   for (const [id, label] of [["profile-heading", "Profile"], ["links-heading", "Links"], ["about-heading", "About"], ...Object.entries(editorSections).map(([key, value]) => [`editor-${key}`, value.label])]) {
     const link = document.createElement("a");
     link.href = `#${id}`;
@@ -225,10 +232,12 @@ const fillForm = () => {
     nav.append(link);
   }
   document.querySelector("[data-editor-backup]").disabled = false;
+  document.querySelector("[data-editor-draft]").disabled = false;
+  document.querySelector("[data-editor-restore]").disabled = false;
 };
 
 const readForm = () => {
-  const next = structuredClone(siteData);
+  const next = structuredClone(editorBase);
   form.querySelectorAll("[name^='profile.']").forEach((field) => {
     const value = field.name === "profile.about" ? field.value.split(/\n\s*\n/).map((text) => text.trim()).filter(Boolean) : field.value.trim();
     setValue(next, field.name, value);
@@ -238,7 +247,7 @@ const readForm = () => {
 };
 
 form.addEventListener("input", (event) => {
-  if (!event.target.matches("[data-editor-search]")) dirty = true;
+  if (!event.target.matches("[data-editor-search], [data-editor-restore]")) dirty = true;
 });
 window.addEventListener("beforeunload", (event) => {
   if (!dirty) return;
@@ -255,6 +264,7 @@ const loadData = async () => {
   }
 
   csrfToken = response.headers.get("X-CSRF-Token") || "";
+  revision = response.headers.get("ETag") || "";
   siteData = await response.json();
   fillForm();
   fieldGroup.disabled = false;
@@ -263,7 +273,10 @@ const loadData = async () => {
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
-  if (!siteData) return;
+  if (!siteData || saving) return;
+  saving = true;
+  document.querySelector("[data-editor-restore]").disabled = true;
+  document.querySelector("[data-restore-apply]").disabled = true;
   saveButtons.forEach((button) => { button.disabled = true; });
   fieldGroup.disabled = true;
   setStatus("Saving...");
@@ -275,7 +288,8 @@ form.addEventListener("submit", async (event) => {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        "X-CSRF-Token": csrfToken
+        "X-CSRF-Token": csrfToken,
+        "If-Match": revision
       },
       body: JSON.stringify(nextData)
     });
@@ -288,12 +302,17 @@ form.addEventListener("submit", async (event) => {
     }
 
     siteData = nextData;
+    editorBase = structuredClone(nextData);
+    revision = response.headers.get("ETag") || "";
     dirty = false;
     collectionNodes.forEach((state) => { state.removed = null; state.undoButton.hidden = true; });
     setStatus("Saved. Refresh the main website to see your changes.", "success");
   } catch (error) {
     setStatus(`Error: ${error.message}`, "error");
   } finally {
+    saving = false;
+    document.querySelector("[data-editor-restore]").disabled = false;
+    document.querySelector("[data-restore-apply]").disabled = false;
     fieldGroup.disabled = false;
     saveButtons.forEach((button) => { button.disabled = false; });
   }
@@ -325,15 +344,83 @@ document.querySelector("[data-logout]").addEventListener("click", async (event) 
 });
 
 
-document.querySelector("[data-editor-backup]").addEventListener("click", () => {
-  if (!siteData) return;
-  const url = URL.createObjectURL(new Blob([JSON.stringify(siteData, null, 2) + "\n"], { type: "application/json" }));
+const downloadContent = (data, kind) => {
+  const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2) + "\n"], { type: "application/json" }));
   const link = document.createElement("a");
   link.href = url;
-  link.download = `academic-site-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  link.download = `academic-site-${kind}-${new Date().toISOString().slice(0, 10)}.json`;
   document.body.append(link);
   link.click();
   link.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), 1500);
+};
+
+document.querySelector("[data-editor-backup]").addEventListener("click", () => {
+  if (!siteData) return;
+  downloadContent(siteData, "backup");
   setStatus("Saved content backup downloaded. Unsaved changes were not included.");
+});
+
+document.querySelector("[data-editor-draft]").addEventListener("click", () => {
+  if (!siteData) return;
+  downloadContent(readForm(), "draft");
+  setStatus("Current draft downloaded, including unsaved changes.");
+});
+
+const restoreInput = document.querySelector("[data-editor-restore]");
+const restorePreview = document.querySelector("[data-restore-preview]");
+const restoreStatus = document.querySelector("[data-restore-status]");
+let pendingBackup = null;
+let restoreRequest = 0;
+restoreInput.addEventListener("change", async () => {
+  const requestId = ++restoreRequest;
+  const file = restoreInput.files[0];
+  pendingBackup = null;
+  restorePreview.hidden = true;
+  restoreStatus.textContent = "";
+  if (!file) return;
+  try {
+    if (file.size > 1_000_000) throw new Error("Choose a backup smaller than 1 MB.");
+    restoreStatus.textContent = "Checking backup…";
+    let data;
+    try { data = JSON.parse(await file.text()); }
+    catch { throw new Error("This file does not contain valid JSON."); }
+    const response = await fetch("/api/admin/validate-backup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
+      body: JSON.stringify(data)
+    });
+    const result = await response.json();
+    if (requestId !== restoreRequest) return;
+    if (!response.ok) throw new Error(result.error || "Could not validate this backup.");
+    pendingBackup = data;
+    const counts = Object.entries(editorSections).map(([key, section]) => `${section.label}: ${data[key].length}`).join(" · ");
+    document.querySelector("[data-restore-summary]").textContent = `Profile: ${data.profile.name}. ${counts}. Loading replaces unsaved edits in this editor; saved content stays unchanged until you save.`;
+    restorePreview.hidden = false;
+    restoreStatus.textContent = "Backup checked. Review the summary before loading it.";
+  } catch (error) {
+    if (requestId === restoreRequest) restoreStatus.textContent = `Cannot restore: ${error.message}`;
+  }
+});
+
+document.querySelector("[data-restore-apply]").addEventListener("click", () => {
+  if (!pendingBackup || saving) return;
+  fillForm(pendingBackup);
+  dirty = true;
+  pendingBackup = null;
+  restorePreview.hidden = true;
+  restoreInput.value = "";
+  restoreStatus.textContent = "Backup loaded into the editor. Review your changes and choose Save details to apply them.";
+  setStatus("Restored draft ready for review. Nothing has been saved yet.");
+  const first = form.querySelector("[name='profile.name']");
+  first.focus();
+});
+
+document.querySelector("[data-restore-cancel]").addEventListener("click", () => {
+  ++restoreRequest;
+  pendingBackup = null;
+  restorePreview.hidden = true;
+  restoreInput.value = "";
+  restoreStatus.textContent = "Restoration cancelled. Editor content is unchanged.";
+  restoreInput.focus();
 });

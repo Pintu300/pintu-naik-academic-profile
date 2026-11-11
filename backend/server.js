@@ -133,6 +133,8 @@ const readSiteData = async (dataDir) => {
   return Object.fromEntries(entries);
 };
 
+const dataRevision = (data) => `"${createHash("sha256").update(JSON.stringify(data)).digest("hex")}"`;
+
 const readRequestBody = (request, maxBodyBytes) =>
   new Promise((resolve, reject) => {
     const chunks = [];
@@ -324,15 +326,17 @@ const writeSiteData = async (dataDir, data) => {
   return null;
 };
 
-const serveAdminApi = async (request, response, dataDir, maxBodyBytes, csrfToken, saveData, adminOrigin) => {
-  if (request.method === "GET" || request.method === "HEAD") {
+const serveAdminApi = async (request, response, loadData, maxBodyBytes, csrfToken, saveData, adminOrigin, validateOnly = false) => {
+  if (!validateOnly && (request.method === "GET" || request.method === "HEAD")) {
+    const data = await loadData();
     response.setHeader("X-CSRF-Token", csrfToken);
-    sendJson(request, response, 200, await readSiteData(dataDir));
+    response.setHeader("ETag", dataRevision(data));
+    sendJson(request, response, 200, data);
     return;
   }
 
-  if (request.method !== "PUT") {
-    sendMethodNotAllowed(request, response, ["GET", "HEAD", "PUT"]);
+  if (request.method !== (validateOnly ? "POST" : "PUT")) {
+    sendMethodNotAllowed(request, response, validateOnly ? ["POST"] : ["GET", "HEAD", "PUT"]);
     return;
   }
 
@@ -364,12 +368,22 @@ const serveAdminApi = async (request, response, dataDir, maxBodyBytes, csrfToken
     throw new InvalidJsonError();
   }
 
-  const validationError = await saveData(nextData);
+  const validationError = validateSiteData(nextData);
   if (validationError) {
     sendJson(request, response, 400, { error: validationError });
     return;
   }
 
+  if (validateOnly) {
+    sendJson(request, response, 200, { status: "valid" });
+    return;
+  }
+  if (!request.headers["if-match"]) {
+    sendJson(request, response, 428, { error: "Reload the editor before saving. A content version is required." });
+    return;
+  }
+  const revision = await saveData(nextData, request.headers["if-match"]);
+  response.setHeader("ETag", revision);
   sendJson(request, response, 200, { status: "saved" });
 };
 
@@ -449,15 +463,16 @@ const serveApi = async (request, response, pathname, options) => {
     return;
   }
 
-  if (pathname === "/api/admin/site-data") {
+  if (pathname === "/api/admin/site-data" || pathname === "/api/admin/validate-backup") {
     await serveAdminApi(
       request,
       response,
-      options.dataDir,
+      options.loadData,
       options.maxBodyBytes,
       request.adminSession.csrfToken,
       options.saveData,
-      options.adminOrigin
+      options.adminOrigin,
+      pathname === "/api/admin/validate-backup"
     );
     return;
   }
@@ -489,13 +504,23 @@ const createServer = ({
     throw new Error("ADMIN_ORIGIN must be an exact HTTP(S) origin without a trailing slash.");
   }
   const auth = createAdminAuth({ adminUser, adminPassword, adminOrigin, sendJson, readRequestBody, now });
-  let pendingWrite = Promise.resolve();
-  const saveData = (data) => {
-    const result = pendingWrite.then(() => writeSiteData(dataDir, data));
-    pendingWrite = result.catch(() => {});
+  let pendingOperation = Promise.resolve();
+  const serialize = (operation) => {
+    const result = pendingOperation.then(operation);
+    pendingOperation = result.catch(() => {});
     return result;
   };
-  const options = { adminUser, adminPassword, frontendDir, dataDir, maxBodyBytes, saveData, adminOrigin };
+  const loadData = () => serialize(() => readSiteData(dataDir));
+  const saveData = (data, expectedRevision) => serialize(async () => {
+    if (dataRevision(await readSiteData(dataDir)) !== expectedRevision) {
+      const error = new Error("Content changed since you opened the editor. Download your draft, then reload the saved content and apply your edits again.");
+      error.statusCode = 412;
+      throw error;
+    }
+    await writeSiteData(dataDir, data);
+    return dataRevision(await readSiteData(dataDir));
+  });
+  const options = { adminUser, adminPassword, frontendDir, dataDir, maxBodyBytes, loadData, saveData, adminOrigin };
 
   const server = http.createServer(async (request, response) => {
     try {

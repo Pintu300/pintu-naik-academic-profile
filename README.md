@@ -133,6 +133,42 @@ The build generates canonical URLs, Open Graph and Twitter sharing tags,
 summary, and photo. Keep the final public URL configured before publishing.
 These files do not imply the website has been deployed.
 
+## Restore content and recover drafts
+
+In the local admin editor, **Download saved backup** exports the content last
+loaded or saved in that editor. **Download current draft** includes its unsaved
+edits. Both files contain public website content, not passwords or session
+tokens. Keep backups outside the public assets directory.
+
+To restore a file, choose it under **Restore a backup**. The server validates
+the JSON structure, required fields, URLs, and size before showing a summary.
+**Cancel restoration** leaves the editor unchanged. **Load backup into editor**
+replaces the current unsaved draft; review the imported content before pressing
+**Save details**. Selecting or loading a backup does not write website files.
+Restoring JSON does not restore image/PDF files: retain those assets separately.
+
+Every editor load receives a content version. Saves must send that exact
+version in `If-Match`; a successful save returns the new version in `ETag`.
+An older tab receives HTTP 412 instead of overwriting newer content. A missing
+version receives HTTP 428. If a conflict occurs, download your current draft,
+reload the saved content, and reapply the edits you want to keep. These checks
+also detect direct JSON edits made since the editor was opened.
+
+The Node backend serializes admin reads and writes within one server process.
+Run one server process for a data directory; this is not a distributed database
+lock for multiple servers or concurrent external file-writing programs.
+
+## Physical-device acceptance checks
+
+Linux WebKit checks do not establish compatibility with Safari on macOS/iOS.
+Before a release, check the deployed URL in actual Safari and on an Android
+phone: all navigation links, portrait/landscape layouts, publication filters,
+citations and downloads, the CV print preview, and visitor-error recovery.
+Verify keyboard navigation at increased text size where available. The local
+admin editor additionally needs restore/cancel/save and two-tab conflict checks
+when testing on an accessible local server. Do not expose the admin server
+publicly just to run a device test.
+
 ## Admin Editor
 
 The browser editor is available when you run the Node backend locally. It is

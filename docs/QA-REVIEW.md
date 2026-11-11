@@ -257,3 +257,50 @@ behavior, recovery from a 503 response, country rendering, and keyboard focus.
 Evidence: `artifacts/visitor-retry-browser-report.json`. Syntax validation,
 the static build, and whitespace checks passed. The change is local and has
 not been published.
+
+## Backup restoration and save conflicts — 11 November 2026
+
+The local editor can validate JSON backups, display a summary, cancel without
+changing its fields, or load a backup as an unsaved draft. Only an explicit
+Save writes the website files. A separate current-draft download preserves
+unsaved work; saved-backup downloads continue to exclude it. Imported extra
+profile/record metadata is retained. Navigation and collection controls are
+rebuilt without duplicates when a backup is loaded.
+
+Admin GET responses return an `ETag` representing the content version while
+remaining `no-store`. Saves require that exact version in `If-Match` (428 if
+missing, 412 if stale). The version check and write share a serialized queue;
+admin reads use the same queue so they cannot observe a partially installed
+save. Successful saves return the next revision. This protects editor tabs
+from overwriting newer content and detects intervening direct JSON edits.
+Use one backend process per data directory; external file-writing processes
+do not participate in this in-process queue.
+
+The full suite passed **61 automated tests**. **12 Chromium/WebKit checks**
+passed at 1440px and 390px, covering invalid backup rejection, review/cancel,
+staging without writes, saved versus draft downloads, preservation of imported
+metadata, explicit saves, repeated saves, and real two-tab conflicts. The
+original JSON fingerprints stayed unchanged. Evidence is in
+`artifacts/admin-recovery-browser-report.json`.
+
+The extended Firefox runner completed 43 checks, with two upload checks blocked
+by Snap's separate `/tmp` view. Upload fixtures were moved into the ignored
+artifact directory; the requested rerun was not approved, so those corrected
+Firefox checks remain unverified. Syntax validation, the static build, and
+whitespace checks passed.
+
+The prior public-deployment gap has been resolved by an existing successful
+GitHub Actions run for commit `728de30a2d471709fb8cbe433cea9c4a755d8bce`:
+https://github.com/Pintu300/pintu-naik-academic-profile/actions/runs/42830250159
+All **99 public files** in the current build matched the deployed files by
+SHA-256, including the sitemap and robots files (now HTTP 200). Evidence is
+in `artifacts/deployment-comparison.json`. No new frontend deployment is needed
+for these admin-only changes. Publishing the new backend/editor source changes
+is still pending: the GitHub push dry run found no HTTPS authentication.
+A GitHub integration was suggested, but no installation/connection was
+confirmed during this work.
+
+No Android device was connected according to `adb devices`. Actual Safari,
+macOS/iOS devices, and configured BrowserStack/Sauce credentials were
+unavailable. Physical-device acceptance steps are recorded in README; viewport
+checks and Linux WebKit are not reported as physical-phone or Safari tests.

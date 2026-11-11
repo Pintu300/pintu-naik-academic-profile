@@ -25,6 +25,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -37,6 +39,9 @@ jobs:
 
       - name: Check JavaScript
         run: npm run check
+
+      - name: Check for exposed credentials and private files
+        run: npm run security:history
 
       - name: Run regression tests
         run: npm test

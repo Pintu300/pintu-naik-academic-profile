@@ -1,9 +1,10 @@
 const fs = require("node:fs/promises");
 const path = require("node:path");
 const { pages, publicBase, pageUrl, injectMetadata, escapeAttribute } = require("./site-metadata");
+const { isSensitivePath, isPublicAsset } = require("../backend/public-files");
 const root = path.resolve(__dirname, "..");
 
-const buildStatic = async ({ outputDirectory = path.join(root, "dist"), siteUrl } = {}) => {
+const buildStatic = async ({ outputDirectory = path.join(root, "dist"), frontendDirectory = path.join(root, "frontend"), siteUrl } = {}) => {
   const config = JSON.parse(await fs.readFile(path.join(root, "site.config.json"), "utf8"));
   const base = publicBase(siteUrl || process.env.SITE_URL || config.publicUrl);
   const profile = JSON.parse(await fs.readFile(path.join(root, "backend/data/profile.json"), "utf8"));
@@ -18,15 +19,18 @@ const buildStatic = async ({ outputDirectory = path.join(root, "dist"), siteUrl 
   await fs.rm(outputDirectory, { recursive: true, force: true });
   await fs.mkdir(path.join(outputDirectory, "data"), { recursive: true });
   for (const filename of Object.keys(pages)) {
-    const html = await fs.readFile(path.join(root, "frontend", filename), "utf8");
+    const html = await fs.readFile(path.join(frontendDirectory, filename), "utf8");
     await fs.writeFile(path.join(outputDirectory, filename), injectMetadata(html, filename, profile, base));
   }
   for (const name of ["styles.css", "catalog.js", "catalog-ui.js", "script.js", "analytics.js", "visitor-stats.js", "assets"]) {
-    await fs.cp(path.join(root, "frontend", name), path.join(outputDirectory, name), {
+    await fs.cp(path.join(frontendDirectory, name), path.join(outputDirectory, name), {
       recursive: true,
       filter: async (source) => {
-        if ((await fs.lstat(source)).isSymbolicLink()) throw new Error("Static assets must not contain symlinks.");
-        return !path.basename(source).startsWith(".");
+        const stat = await fs.lstat(source);
+        if (stat.isSymbolicLink()) throw new Error("Static assets must not contain symlinks.");
+        const relative = path.relative(frontendDirectory, source);
+        if (path.basename(source).startsWith(".") || isSensitivePath(relative)) return false;
+        return stat.isDirectory() || name !== "assets" || isPublicAsset(relative);
       }
     });
   }

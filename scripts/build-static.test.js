@@ -44,3 +44,20 @@ test("metadata generation is repeatable and rejects insecure public URL configur
   assert.throws(() => publicBase("http://example.com"));
   assert.throws(() => publicBase("https://user:password@example.com"));
 });
+
+test("static publication excludes private files even when placed in frontend assets", async () => {
+  const temporary = await fs.mkdtemp(path.join(os.tmpdir(), "academic-private-assets-"));
+  try {
+    const frontendDirectory = path.join(temporary, "frontend");
+    const outputDirectory = path.join(temporary, "public");
+    await fs.cp(path.join(__dirname, "../frontend"), frontendDirectory, { recursive: true });
+    const privateNames = [".env", "credentials.json", "service-account.json", "academic-site-backup-today.json", "backup-notes.pdf", "signing.pfx", "extra.json"];
+    for (const name of privateNames) await fs.writeFile(path.join(frontendDirectory, "assets", name), "Synthetic private fixture");
+    await buildStatic({ outputDirectory, frontendDirectory });
+    for (const name of privateNames) await assert.rejects(fs.access(path.join(outputDirectory, "assets", name)), { code: "ENOENT" });
+    await fs.access(path.join(outputDirectory, "assets", "Photo.jpeg"));
+    await fs.access(path.join(outputDirectory, "assets", "optimized", "manifest.json"));
+  } finally {
+    await fs.rm(temporary, { recursive: true, force: true });
+  }
+});

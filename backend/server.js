@@ -9,6 +9,7 @@ const FRONTEND_DIR = path.join(ROOT_DIR, "frontend");
 const DATA_DIR = path.join(__dirname, "data");
 const MAX_BODY_BYTES = 1_000_000;
 const { createAdminAuth } = require("./auth");
+const { isPublicAsset, publicFiles } = require("./public-files");
 const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
   "script-src 'self' https://www.googletagmanager.com",
@@ -45,6 +46,7 @@ const API_RESOURCES = Object.freeze({
 
 const MIME_TYPES = Object.freeze({
   ".avif": "image/avif",
+  ".ico": "image/x-icon",
   ".css": "text/css; charset=utf-8",
   ".gif": "image/gif",
   ".html": "text/html; charset=utf-8",
@@ -57,6 +59,7 @@ const MIME_TYPES = Object.freeze({
   ".png": "image/png",
   ".svg": "image/svg+xml",
   ".ttf": "font/ttf",
+  ".otf": "font/otf",
   ".webp": "image/webp",
   ".woff": "font/woff",
   ".woff2": "font/woff2"
@@ -402,7 +405,8 @@ const resolveStaticPath = (frontendDir, pathname) => {
   if (relativePath.startsWith("..") || path.isAbsolute(relativePath)
     || requestedPath.split(/[\\/]/).some((part) => part.startsWith("."))
     || (!requestedPath.startsWith("assets/") && requestedPath.includes("/"))
-    || !Object.hasOwn(MIME_TYPES, path.extname(filePath).toLowerCase())) return null;
+    || !Object.hasOwn(MIME_TYPES, path.extname(filePath).toLowerCase())
+    || !(publicFiles.has(requestedPath) || isPublicAsset(requestedPath))) return null;
   return filePath;
 };
 

@@ -174,10 +174,14 @@ publicly just to run a device test.
 The browser editor is available when you run the Node backend locally. It is
 not included in the GitHub Pages deployment.
 
-Start the server with an admin password:
+Start the server with a unique admin password entered at a hidden Bash prompt:
 
 ```bash
-ADMIN_PASSWORD="change-this-password" npm start
+read -r -s -p "Admin password: " ADMIN_PASSWORD
+printf '\n'
+export ADMIN_PASSWORD
+npm start
+unset ADMIN_PASSWORD
 ```
 
 Then open:
@@ -195,10 +199,11 @@ Username: admin
 Password: the ADMIN_PASSWORD value you used
 ```
 
-You can also choose a custom username:
+You can also choose a custom username by setting it before using the password
+prompt above:
 
 ```bash
-ADMIN_USER="yourname" ADMIN_PASSWORD="change-this-password" npm start
+export ADMIN_USER="yourname"
 ```
 
 The editor uses labeled forms for research, news, publications, projects,
@@ -239,6 +244,11 @@ errors are logged to the terminal, while API responses return concise messages.
 The static GitHub Pages deployment excludes both the admin and login files.
 
 ## Security
+
+See [Credentials and private files](docs/SECURITY-SETUP.md) for the credential
+review, hidden password prompt, backup storage, and safe response to exposure.
+Run `npm run security:history` before pushing. The deployment workflow also
+checks for credential patterns and private files before publishing.
 
 The local server binds to `127.0.0.1` by default. Open it at
 `http://localhost:3000`. The admin editor stays disabled until you set

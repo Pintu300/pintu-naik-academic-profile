@@ -110,6 +110,20 @@ test("serves public data and static pages", async () => {
   assert.match(await pageResponse.text(), /Test site/);
 });
 
+test("never serves private configuration, credentials, or backups misplaced in the frontend", async () => {
+  const frontend = path.join(temporaryDirectory, "frontend");
+  await fs.mkdir(path.join(frontend, "assets"));
+  const names = [".env", "credentials.json", "auth.js", "assets/.env", "assets/service-account.json", "assets/academic-site-backup-today.json", "assets/backup-notes.pdf", "assets/signing.pem", "assets/config.json"];
+  for (const name of names) {
+    await fs.writeFile(path.join(frontend, name), "Synthetic private fixture");
+    const response = await fetch(`${baseUrl}/${name}`);
+    assert.equal(response.status, 403, name);
+    assert.ok(!(await response.text()).includes("Synthetic private fixture"));
+  }
+  await fs.writeFile(path.join(frontend, "assets", "photo.jpg"), "Public image fixture");
+  assert.equal((await fetch(`${baseUrl}/assets/photo.jpg`)).status, 200);
+});
+
 test("returns clear errors for unknown paths, methods, and traversal attempts", async () => {
   const missingResponse = await fetch(`${baseUrl}/api/missing`);
   assert.equal(missingResponse.status, 404);

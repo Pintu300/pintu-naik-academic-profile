@@ -18,6 +18,19 @@ coverage/
 .dev.vars.*
 *.pem
 *.key
+*.p12
+*.pfx
+*.keystore
+*.kdbx
+*.bak
+backups/
+secrets/
+credentials/
+service-account*.json
+service_account*.json
+credentials*.json
+academic-site-backup-*.json
+academic-site-draft-*.json
 
 # Local browser screenshots and QA measurements
 artifacts/

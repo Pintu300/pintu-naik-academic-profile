@@ -23,7 +23,8 @@ const run = async () => {
   const fingerprints = async () => Object.fromEntries(await Promise.all((await fs.readdir(realData)).filter((file) => file.endsWith(".json")).map(async (file) => [file, createHash("sha256").update(await fs.readFile(path.join(realData, file))).digest("hex")])));
   const original = await fingerprints();
   const password = randomBytes(24).toString("hex");
-  const server = createServer({ adminPassword: password, dataDir });
+  let adminTime = Date.now();
+  const server = createServer({ adminPassword: password, dataDir, now: () => adminTime });
   let driver;
   let sessionId;
   let driverBase;
@@ -450,6 +451,50 @@ const run = async () => {
       await click("[data-editor-save]");
       await waitFor("return document.querySelector('[data-editor-status]').dataset.status === 'success'", "save with updated revision");
       assert.equal(JSON.parse(await fs.readFile(path.join(dataDir, "profile.json"), "utf8")).name, "Second save after restore");
+    });
+    const renewSession = async () => {
+      const status = await command("POST", "/execute/async", {
+        script: "const done = arguments[arguments.length - 1]; fetch('/api/auth/login', {method:'POST',headers:{'Content-Type':'application/json','X-Requested-With':'admin-editor'},body:JSON.stringify({username:'admin',password:arguments[0]})}).then(response => done(response.status)).catch(() => done(0));",
+        args: [password]
+      });
+      assert.equal(status, 200);
+    };
+    await check("expired sessions preserve drafts and reconnect without reloading", async () => {
+      await fill("[name='profile.name']", "Draft retained after session expiry");
+      const beforeSave = await fs.readFile(path.join(dataDir, "profile.json"), "utf8");
+      adminTime += 31 * 60 * 1000;
+      await click("[data-editor-save]");
+      await waitFor("return !document.querySelector('[data-editor-session]').hidden", "session recovery notice");
+      assert.ok((await command("GET", "/url")).endsWith("/admin.html"));
+      assert.equal(await js("return document.querySelector('[name=\"profile.name\"]').value"), "Draft retained after session expiry");
+      assert.equal(await js("return document.querySelector('[data-editor-save]').disabled"), true);
+      assert.equal(await fs.readFile(path.join(dataDir, "profile.json"), "utf8"), beforeSave);
+      const before = await fs.readdir(output);
+      await click("[data-editor-draft]");
+      const draft = JSON.parse(await downloadAfter(before, /^academic-site-draft.*\.json$/));
+      assert.equal(draft.profile.name, "Draft retained after session expiry");
+      await renewSession();
+      await click("[data-editor-reconnect]");
+      await waitFor("return document.querySelector('[data-editor-session]').hidden && !document.querySelector('[data-editor-save]').disabled", "session reconnected");
+      await click("[data-editor-save]");
+      await waitFor("return document.querySelector('[data-editor-status]').dataset.status === 'success'", "save retained draft");
+      assert.equal(JSON.parse(await fs.readFile(path.join(dataDir, "profile.json"), "utf8")).name, draft.profile.name);
+    });
+    await check("reconnecting cannot bypass save-conflict protection", async () => {
+      await fill("[name='profile.name']", "Older draft after second expiry");
+      adminTime += 31 * 60 * 1000;
+      await click("[data-editor-save]");
+      await waitFor("return !document.querySelector('[data-editor-session]').hidden", "second session expiry");
+      const file = path.join(dataDir, "profile.json");
+      const profile = JSON.parse(await fs.readFile(file, "utf8"));
+      await fs.writeFile(file, JSON.stringify({ ...profile, name: "Newer content during expiry" }));
+      await renewSession();
+      await click("[data-editor-reconnect]");
+      await waitFor("return document.querySelector('[data-editor-session]').hidden", "reconnect after external change");
+      assert.match(await js("return document.querySelector('[data-editor-status]').textContent"), /saved content changed/);
+      await click("[data-editor-save]");
+      await waitFor("return document.querySelector('[data-editor-status]').textContent.includes('Content changed')", "stale reconnected save rejected");
+      assert.equal(JSON.parse(await fs.readFile(file, "utf8")).name, "Newer content during expiry");
     });
     await check("a stale editor cannot overwrite newer content and keeps its unsaved draft", async () => {
       const profileFile = path.join(dataDir, "profile.json");

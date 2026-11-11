@@ -5,13 +5,22 @@ let siteData = null;
 let editorBase = null;
 let revision = "";
 let saving = false;
+let sessionExpired = false;
 let csrfToken = "";
 const fieldGroup = document.querySelector("[data-editor-fields]");
 const saveButtons = [...document.querySelectorAll("[data-editor-save], [data-editor-form] [type='submit']")];
+const sessionRecovery = document.querySelector("[data-editor-session]");
 saveButtons.forEach((button) => { button.disabled = true; });
 const requireSignIn = (response) => {
   if (response.status !== 401) return false;
-  window.location.replace("/login.html");
+  if (siteData) {
+    sessionExpired = true;
+    sessionRecovery.hidden = false;
+    saveButtons.forEach((button) => { button.disabled = true; });
+    setStatus("Session expired. Your edits are still here. Download your draft or sign in again in a new tab, then reconnect.", "error");
+  } else {
+    window.location.replace("/login.html");
+  }
   return true;
 };
 
@@ -273,7 +282,7 @@ const loadData = async () => {
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
-  if (!siteData || saving) return;
+  if (!siteData || saving || sessionExpired) return;
   saving = true;
   document.querySelector("[data-editor-restore]").disabled = true;
   document.querySelector("[data-restore-apply]").disabled = true;
@@ -314,12 +323,37 @@ form.addEventListener("submit", async (event) => {
     document.querySelector("[data-editor-restore]").disabled = false;
     document.querySelector("[data-restore-apply]").disabled = false;
     fieldGroup.disabled = false;
-    saveButtons.forEach((button) => { button.disabled = false; });
+    saveButtons.forEach((button) => { button.disabled = sessionExpired; });
   }
 });
 
 loadData().catch((error) => {
   setStatus(`Error: ${error.message}`, "error");
+});
+
+document.querySelector("[data-editor-reconnect]").addEventListener("click", async (event) => {
+  const button = event.currentTarget;
+  button.disabled = true;
+  try {
+    const response = await fetch("/api/admin/site-data", { cache: "no-store" });
+    if (requireSignIn(response)) return;
+    if (!response.ok) throw new Error("Could not reconnect. Your draft is still here; try again.");
+    const nextToken = response.headers.get("X-CSRF-Token");
+    const savedRevision = response.headers.get("ETag");
+    if (!nextToken || !savedRevision) throw new Error("Could not verify the session. Download your draft before reloading.");
+    csrfToken = nextToken;
+    sessionExpired = false;
+    sessionRecovery.hidden = true;
+    saveButtons.forEach((save) => { save.disabled = false; });
+    // Keep the draft's original revision so reconnecting cannot bypass conflicts.
+    setStatus(savedRevision === revision
+      ? "Signed in again. Your draft is unchanged and can now be saved."
+      : "Signed in again, but saved content changed. Download your draft, then reload and reapply your edits; saving this older draft will be blocked.", savedRevision === revision ? "info" : "error");
+  } catch (error) {
+    setStatus(error.message, "error");
+  } finally {
+    button.disabled = false;
+  }
 });
 
 
@@ -390,8 +424,13 @@ restoreInput.addEventListener("change", async () => {
       headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
       body: JSON.stringify(data)
     });
-    const result = await response.json();
     if (requestId !== restoreRequest) return;
+    if (requireSignIn(response)) {
+      restoreInput.value = "";
+      restoreStatus.textContent = "Sign in again and reconnect, then select your backup again. Editor content is unchanged.";
+      return;
+    }
+    const result = await response.json();
     if (!response.ok) throw new Error(result.error || "Could not validate this backup.");
     pendingBackup = data;
     const counts = Object.entries(editorSections).map(([key, section]) => `${section.label}: ${data[key].length}`).join(" · ");

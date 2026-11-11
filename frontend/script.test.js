@@ -35,7 +35,7 @@ class Element {
 
 const loadPage = async ({ selectors = [], cv = false, failed = [], overrides = {}, modal = false } = {}) => {
   const nodes = new Map(selectors.map((selector) => [selector, [new Element(selector.includes("titles") ? "UL" : "DIV")]]));
-  const fields = ["name", "title", "institution", "summary", "email"].map((key) => new Element("SPAN", { profile: key }));
+  const fields = ["name", "title", "institution", "summary", "email", "academicService"].map((key) => new Element("SPAN", { profile: key }));
   const links = ["email", "linkedin", "department"].map((key) => new Element("A", { profileLink: key }));
   nodes.set("[data-profile]", fields);
   nodes.set("[data-profile-link]", links);
@@ -90,10 +90,11 @@ const loadPage = async ({ selectors = [], cv = false, failed = [], overrides = {
 };
 
 test("CV identity, contact details, interests, and education follow shared content", async () => {
-  const profile = { ...siteData.profile, name: "Changed Researcher", email: "changed@example.com", summary: "Updated research summary." };
+  const profile = { ...siteData.profile, name: "Changed Researcher", email: "changed@example.com", summary: "Updated research summary.", academicService: "Updated reviewer role." };
   const page = await loadPage({ cv: true, selectors: ["[data-research-titles]", "[data-education-list]", "[data-publications-category]", "[data-teaching-list]", "[data-skills-list]"], overrides: { profile } });
   assert.equal(page.fields.find((field) => field.dataset.profile === "name").textContent, profile.name);
   assert.equal(page.fields.find((field) => field.dataset.profile === "summary").textContent, profile.summary);
+  assert.equal(page.fields.find((field) => field.dataset.profile === "academicService").textContent, profile.academicService);
   assert.equal(page.links[0].href, "mailto:changed@example.com");
   assert.equal(page.links[2].href, profile.links.department);
   const interests = page.nodes.get("[data-research-titles]")[0].innerHTML;

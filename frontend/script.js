@@ -223,7 +223,7 @@ const renderPublications = () => {
         <article class="academic-record" id="${AcademicCatalog.publicationKey(item)}">
           <div class="academic-record__meta">
             <span class="academic-record__year">${escapeHtml(item.year || "")}</span>
-            ${item.status ? `<span class="academic-record__status">${escapeHtml(item.status)}</span>` : ""}
+            ${item.status ? `<span class="academic-record__status" data-publication-status="${escapeHtml(item.status.trim().toLowerCase())}">${escapeHtml(item.status)}</span>` : ""}
           </div>
           <div>
             <h3>${escapeHtml(item.title || "Untitled publication")}</h3>
@@ -536,7 +536,8 @@ const setProfile = (profile) => {
     researchAreas: "researchAreas",
     aboutHeading: "aboutHeading",
     contactText: "contactText",
-    contactHeading: "contactHeading"
+    contactHeading: "contactHeading",
+    academicService: "academicService"
   };
 
   document.querySelectorAll("[data-profile]").forEach((element) => {
@@ -545,6 +546,10 @@ const setProfile = (profile) => {
     if (value) {
       element.textContent = value;
     }
+  });
+
+  document.querySelectorAll("[data-academic-service]").forEach((section) => {
+    section.hidden = typeof profile.academicService !== "string" || !profile.academicService.trim();
   });
 
   document.querySelectorAll("[data-profile-link], [data-contact-link]").forEach((link) => {
@@ -766,7 +771,7 @@ const loadAcademicProfile = async () => {
       <article class="academic-record">
         <div class="academic-record__meta">
           <span class="academic-record__year">${escapeHtml(item.year || "")}</span>
-          ${item.status ? `<span class="academic-record__status">${escapeHtml(item.status)}</span>` : ""}
+          ${item.status ? `<span class="academic-record__status" data-publication-status="${escapeHtml(item.status.trim().toLowerCase())}">${escapeHtml(item.status)}</span>` : ""}
         </div>
         <div>
           <h3>${escapeHtml(item.title || "Publication")}</h3>

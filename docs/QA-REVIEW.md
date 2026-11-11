@@ -304,3 +304,60 @@ No Android device was connected according to `adb devices`. Actual Safari,
 macOS/iOS devices, and configured BrowserStack/Sauce credentials were
 unavailable. Physical-device acceptance steps are recorded in README; viewport
 checks and Linux WebKit are not reported as physical-phone or Safari tests.
+
+## Final backend/frontend review — 11 November 2026
+
+The review covered request routing, authentication/session handling, CSRF,
+validation, transactional saves and conflicts, private-file policy, static
+publication, catalogue behavior, backups/restoration, visitor reporting, and
+responsive/keyboard behavior. Academic content and real project data were
+not changed.
+
+Two concrete issues were fixed:
+
+- An expired admin session previously redirected a loaded editor to login.
+  It now keeps the draft and offers download, sign-in in another tab, and
+  reconnection without reloading the editor. Reconnection updates the session
+  token but retains the draft's original content revision, so it cannot bypass
+  save conflicts. Expired backup validation also preserves the form and resets
+  file selection so the same file can be selected again after signing in.
+- Public API/JSON reads could race with the file-replacement stage of a save.
+  They now use the same in-process queue as admin reads/writes. A controlled
+  test pauses a transaction after moving a file and verifies that both public
+  routes return the completed update rather than a temporary missing-file error.
+
+A duplicate favicon MIME entry was also removed.
+
+Verification:
+
+- **68 automated tests** passed, including the controlled read/write race.
+- **47 Firefox browser checks** passed, including the previously unverified
+  file uploads, restoration, session-expiry recovery, and stale-save protection.
+- **78 Chromium/WebKit general browser checks** passed.
+- **56 Chromium/WebKit static-build checks** passed.
+- **12 Chromium/WebKit session-recovery checks** passed at desktop/mobile
+  widths using actual session expiry and sign-in in a separate tab. They cover
+  draft downloads, recovery saves, changed-content conflicts, and expired
+  backup validation.
+- Syntax checks, the static build, and whitespace checks passed. The npm
+  advisory audit reported **zero known vulnerabilities**. The redacted scan
+  found no credential-pattern matches in working files, staged content, or
+  locally available history.
+
+The general Chromium/WebKit and static checks preceded the final public-read
+queue change; the full regression suite and Firefox checks were rerun after
+that change. This queue adjustment does not change static output. The Firefox
+run also covers the final admin recovery code.
+
+Evidence is in `artifacts/browser/report.json`,
+`artifacts/cross-browser/report.json`, `artifacts/static-browser-report.json`,
+and `artifacts/session-recovery-browser-report.json`. Browser runners confirmed
+that original data fingerprints were unchanged and reported no unhandled
+JavaScript exceptions. The local Node server already running on port 3000
+was not stopped or reconfigured by this review; testing used isolated servers.
+
+Actual Safari on macOS/iOS and physical-phone behavior remain outside this
+Linux verification. Credential pattern checks and dependency advisories are
+bounded checks, not a guarantee against every vulnerability. No deployment or
+Git history rewrite was performed. Restart the local backend to use the new
+recovery/read behavior, and push the reviewed changes when ready.

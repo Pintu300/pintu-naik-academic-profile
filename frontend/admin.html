@@ -24,6 +24,11 @@
       </header>
 
       <form class="editor-form" id="editor-form" data-editor-form>
+        <aside class="content-status" data-editor-session hidden role="alert">
+          <p>Your session expired. Your draft is still here. Download it before closing or reloading this page.</p>
+          <p><a class="text-link" href="/login.html" target="_blank" rel="noopener">Sign in again in a new tab</a>, then return here.</p>
+          <button class="button neutral" type="button" data-editor-reconnect>Reconnect after signing in</button>
+        </aside>
         <nav class="editor-section-nav" aria-label="Editor sections" data-editor-nav></nav>
         <div class="editor-backup"><button class="button neutral" type="button" data-editor-backup disabled>Download saved backup</button><p>Downloads the last saved content. Unsaved changes are not included.</p></div>
         <section class="editor-card" aria-labelledby="restore-heading">
@@ -123,6 +128,11 @@
             <textarea name="profile.about" rows="8" aria-describedby="about-help"></textarea>
           </label>
           <p id="about-help">Separate paragraphs with a blank line.</p>
+          <label>
+            Academic service
+            <textarea name="profile.academicService" rows="3" maxlength="20000" aria-describedby="service-help"></textarea>
+          </label>
+          <p id="service-help">Reviewer roles and other academic service. Displayed on Achievements and the CV; leave blank to hide the section.</p>
         </section>
 
         <div data-editor-collections></div>

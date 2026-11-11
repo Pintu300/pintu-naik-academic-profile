@@ -155,8 +155,17 @@ reload the saved content, and reapply the edits you want to keep. These checks
 also detect direct JSON edits made since the editor was opened.
 
 The Node backend serializes admin reads and writes within one server process.
+Public API and JSON reads also wait for active saves to finish, so a visitor
+does not read files while that process is replacing them.
 Run one server process for a data directory; this is not a distributed database
 lock for multiple servers or concurrent external file-writing programs.
+
+If the editor reports an expired session, keep that tab open. Its unsaved draft
+is retained and can still be downloaded. Use **Sign in again in a new tab**, sign
+in, then return to the original editor and choose **Reconnect after signing in**.
+This updates the session token without replacing your fields. If saved content
+changed while you were signed out, the older draft remains protected from
+overwriting it; download the draft before reloading and reapplying your edits.
 
 ## Physical-device acceptance checks
 

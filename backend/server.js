@@ -50,7 +50,6 @@ const MIME_TYPES = Object.freeze({
   ".css": "text/css; charset=utf-8",
   ".gif": "image/gif",
   ".html": "text/html; charset=utf-8",
-  ".ico": "image/x-icon",
   ".jpeg": "image/jpeg",
   ".jpg": "image/jpeg",
   ".js": "text/javascript; charset=utf-8",
@@ -492,7 +491,7 @@ const serveApi = async (request, response, pathname, options) => {
     return;
   }
 
-  sendJson(request, response, 200, await readJsonFile(options.dataDir, DATA_FILES[resource]));
+  sendJson(request, response, 200, await options.loadResource(resource));
 };
 
 const createServer = ({
@@ -515,6 +514,7 @@ const createServer = ({
     return result;
   };
   const loadData = () => serialize(() => readSiteData(dataDir));
+  const loadResource = (resource) => serialize(() => readJsonFile(dataDir, DATA_FILES[resource]));
   const saveData = (data, expectedRevision) => serialize(async () => {
     if (dataRevision(await readSiteData(dataDir)) !== expectedRevision) {
       const error = new Error("Content changed since you opened the editor. Download your draft, then reload the saved content and apply your edits again.");
@@ -524,7 +524,7 @@ const createServer = ({
     await writeSiteData(dataDir, data);
     return dataRevision(await readSiteData(dataDir));
   });
-  const options = { adminUser, adminPassword, frontendDir, dataDir, maxBodyBytes, loadData, saveData, adminOrigin };
+  const options = { adminUser, adminPassword, frontendDir, dataDir, maxBodyBytes, loadData, loadResource, saveData, adminOrigin };
 
   const server = http.createServer(async (request, response) => {
     try {
@@ -560,8 +560,7 @@ const createServer = ({
           return;
         }
 
-        const contents = await fs.readFile(path.join(options.dataDir, DATA_FILES[resource]));
-        send(request, response, 200, contents, MIME_TYPES[".json"]);
+        sendJson(request, response, 200, await options.loadResource(resource));
         return;
       }
 

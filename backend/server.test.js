@@ -345,6 +345,39 @@ test("serializes simultaneous admin saves without mixing content or leaving stag
   assert.equal(files.some((name) => name.endsWith(".tmp") || name.endsWith(".bak")), false);
 });
 
+test("public content requests wait until an in-progress admin transaction finishes", async (t) => {
+  const rename = fs.rename.bind(fs);
+  let notifyMoved;
+  let finishWrite;
+  const moved = new Promise((resolve) => { notifyMoved = resolve; });
+  const resume = new Promise((resolve) => { finishWrite = resolve; });
+  t.mock.method(fs, "rename", async (from, to) => {
+    await rename(from, to);
+    if (from === path.join(temporaryDirectory, "data/profile.json") && to.endsWith(".bak")) {
+      notifyMoved();
+      await resume;
+    }
+  });
+  const next = structuredClone(DATA);
+  next.profile.name = "Updated public profile";
+  const save = fetch(`${baseUrl}/api/admin/site-data`, {
+    method: "PUT", headers: { Cookie: adminCookie, "X-CSRF-Token": csrfToken, "If-Match": revision, "Content-Type": "application/json" }, body: JSON.stringify(next)
+  });
+  await moved;
+  try {
+    const reads = Promise.all(["/api/profile", "/data/profile.json"].map((route) => fetch(`${baseUrl}${route}`)));
+    setTimeout(finishWrite, 50);
+    for (const response of await reads) {
+      assert.equal(response.status, 200);
+      assert.equal((await response.json()).name, next.profile.name);
+    }
+    assert.equal((await save).status, 200);
+  } finally {
+    finishWrite();
+    await save;
+  }
+});
+
 test("admin saves require an exact current revision and return the next revision", async () => {
   const put = (version, data = DATA) => fetch(`${baseUrl}/api/admin/site-data`, {
     method: "PUT", headers: { Cookie: adminCookie, "X-CSRF-Token": csrfToken, "Content-Type": "application/json", ...(version === undefined ? {} : { "If-Match": version }) },
